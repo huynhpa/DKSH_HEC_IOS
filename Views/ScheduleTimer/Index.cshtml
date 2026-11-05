@@ -1,0 +1,646 @@
+﻿@{
+    ViewBag.Title = "Schedule timer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+
+    .dateControl {
+    }
+
+    .monthControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblAgents th, #tbl11h th, #tbl7hto7h30 th, #tbl17hto17h30 th, #tbl17hto18h th, #tblSaturdayHalf th, #tblSaturdayFull th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblAgents td, #tbl11h td, #tbl7hto7h30 td, #tbl17hto17h30 td, #tbl17hto18h td, #tblSaturdayHalf td, #tblSaturdayFull td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-1 {
+        background-color: #7CD8FD;
+    }
+
+    .color-2 {
+        background-color: #E1DB69;
+    }
+
+    .color-3 {
+        background-color: #F0D10D;
+    }
+
+    .questionnaire {
+        background-color: #A1E1FA;
+        vertical-align: middle;
+    }
+
+    .total {
+        background-color: #ED3309;
+        color: white;
+    }
+
+    .col-remark {
+        background-color: #9FD2F9;
+    }
+</style>
+<div class="ng-cloak" ng-controller="ScheduleTimerController">
+    <section class="content-header">
+        <h1>
+            SHIFT SCHEDULE
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pharmacy</li>
+        </ol>
+    </section>
+    <section class="content">       
+        <div class="row">
+            <div class="col-md-12">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li><a href="#7hto7h30" data-toggle="tab" aria-expanded="false">7h - 7h30</a></li>
+                        <li class=""><a href="#11h" data-toggle="tab" aria-expanded="false">11h</a></li>
+                        <li class=""><a href="#17hto17h30" data-toggle="tab" aria-expanded="false">17h - 17h30</a></li>
+                        <li class=""><a href="#17hto18h" data-toggle="tab" aria-expanded="false">17h - 18h</a></li>
+                        <li class=""><a href="#SaturdayHalf" data-toggle="tab" aria-expanded="false">Saturday (Half)</a></li>
+                        <li class=""><a href="#SaturdayFull" data-toggle="tab" aria-expanded="false">Saturday (Full)</a></li>
+                        <li class="active"><a href="#Agents" data-toggle="tab" aria-expanded="true">Agents</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <!-- 7h to 7h30 -->
+                        <div class="tab-pane table-responsive no-padding" id="7hto7h30">
+                            <table id="tbl7hto7h30" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="6">7h - 7h30 (GSK/ Pharma/ LP)</th>
+                                    </tr>
+                                    <tr class="color-2">
+                                        <th>1 GSK</th>
+                                        <th>Sanofi</th>
+                                        <th>1 Pharma</th>
+                                        <th>2 Pharma</th>
+                                        <th>3 Pharma</th>
+                                        <th>1 LP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item7 in filterData = (ElevenOClock)" class="text-bold">
+                                        <td>{{item7.DateOfMonths}}</td>
+                                        <td>{{item7.DateNameOfMonths}}</td>
+                                        <td>{{item7.LineLP1}}</td>
+                                        <td>{{item7.LineLP2}}</td>
+                                        <td>{{item7.LineMD1}}</td>
+                                        <td>{{item7.LineMD2}}</td>
+                                        <td>{{item7.LineMD2}}</td>
+                                        <td>{{item7.LineMD2}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 11h to 12h -->
+                        <div class="tab-pane table-responsive no-padding" id="11h">
+                            <table id="tbl11h" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="4">11h (LP + MD) - Trực 12h-13h, nghỉ 11h-12h</th>
+                                    </tr>
+                                    <tr class="color-2">
+                                        <th>1 LP</th>
+                                        <th>2 LP</th>
+                                        <th>1 MD</th>
+                                        <th>2 MD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item11 in filterData = (ElevenOClock)" class="text-bold">
+                                        <td>{{item11.DateOfMonths}}</td>
+                                        <td>{{item11.DateNameOfMonths}}</td>
+                                        <td>{{item11.LineLP1}}</td>
+                                        <td>{{item11.LineLP2}}</td>
+                                        <td>{{item11.LineMD1}}</td>
+                                        <td>{{item11.LineMD2}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 17h to 17h30 -->
+                        <div class="tab-pane table-responsive no-padding" id="17hto17h30">
+                            <table id="tbl17hto17h30" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="5">17h - 17h30</th>
+                                    </tr>
+                                    <tr class="color-2">
+                                        <th>1 MD</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item17 in filterData = (ElevenOClock)" class="text-bold">
+                                        <td>{{item17.DateOfMonths}}</td>
+                                        <td>{{item17.DateNameOfMonths}}</td>
+                                        <td>{{item17.LineMD1}}</td>
+                                        <td>{{item17.LinePharma1}}</td>
+                                        <td>{{item17.LinePharma2}}</td>
+                                        <td>{{item17.LinePharma3}}</td>
+                                        <td>{{item17.LinePharma4}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 17h to 18h -->
+                        <div class="tab-pane table-responsive no-padding" id="17hto18h">
+                            <table id="tbl17hto17h30" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="10">17h - 17h30</th>
+                                    </tr>
+                                    <tr class="color-2">
+                                        <th>1 SA</th>
+                                        <th>1 SA</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Pharma</th>
+                                        <th>1 Voice Mail</th>
+                                        <th>1 LP</th>
+                                        <th>1 LP</th>
+                                        <th>1 MD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item18 in filterData = (ElevenOClock)" class="text-bold">
+                                        <td>{{item18.DateOfMonths}}</td>
+                                        <td>{{item18.DateNameOfMonths}}</td>
+                                        <td>{{item18.LineSA1}}</td>
+                                        <td>{{item18.LineSA2}}</td>
+                                        <td>{{item18.LinePharma1}}</td>
+                                        <td>{{item18.LinePharma2}}</td>
+                                        <td>{{item18.LinePharma3}}</td>
+                                        <td>{{item18.LinePharma4}}</td>
+                                        <td>{{item18.VoiceMail1}}</td>
+                                        <td>{{item18.LineLP1}}</td>
+                                        <td>{{item18.LineLP2}}</td>
+                                        <td>{{item18.LineMD1}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SATURDAY HALF & FULL DAY-->
+                        <div class="tab-pane table-responsive no-padding" id="SaturdayHalf">
+                            <table id="tblSaturdayHalf" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="9">Saturday Half</th>
+                                    </tr>
+                                    <tr class="color-2">                                        
+                                        <th>1 Pharma</th>
+                                        <th>2 Pharma</th>
+                                        <th>3 Pharma</th>
+                                        <th>4 Pharma</th>
+                                        <th>5 Pharma</th>
+                                        <th>6 Pharma</th>
+                                        <th>1 LP</th>
+                                        <th>3 LP</th>
+                                        <th>1 MD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="itemSatHalf in filterData = (SaturdayHalf)" class="text-bold">
+                                        <td>{{itemSatHalf.DateOfMonths}}</td>
+                                        <td>{{itemSatHalf.DateNameOfMonths}}</td>
+                                        <td>{{itemSatHalf.LinePharma1}}</td>
+                                        <td>{{itemSatHalf.LinePharma2}}</td>
+                                        <td>{{itemSatHalf.LinePharma3}}</td>
+                                        <td>{{itemSatHalf.LinePharma4}}</td>
+                                        <td>{{itemSatHalf.LinePharma5}}</td>
+                                        <td>{{itemSatHalf.LinePharma6}}</td>
+                                        <td>{{itemSatHalf.VoiceMail1}}</td>
+                                        <td>{{itemSatHalf.LineLP1}}</td>
+                                        <td>{{itemSatHalf.LineLP2}}</td>
+                                        <td>{{itemSatHalf.LineMD1}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="tab-pane table-responsive no-padding" id="SaturdayFull">
+                            <table id="tblSaturdayFull" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="color-1">
+                                        <th rowspan="2">Date</th>
+                                        <th rowspan="2">Date name</th>
+                                        <th colspan="14">Saturday Half</th>
+                                    </tr>
+                                    <tr class="color-2">
+                                        <th>1 Pharma</th>
+                                        <th>2 Pharma</th>
+                                        <th>3 Pharma</th>
+                                        <th>4 Pharma</th>
+                                        <th>5 Pharma</th>
+                                        <th>6 Pharma</th>
+                                        <th>Voice Mail</th>
+                                        <th>GSK</th>
+                                        <th>1 LP</th>
+                                        <th>2 LP</th>
+                                        <th>3 LP</th>
+                                        <th>1 Sanofi</th>
+                                        <th>2 Sanofi</th>
+                                        <th>1 MD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="itemSatFull in filterData = (SaturdayFull)" class="text-bold">
+                                        <td>{{itemSatHalf.DateOfMonths}}</td>
+                                        <td>{{itemSatHalf.DateNameOfMonths}}</td>
+                                        <td>{{itemSatHalf.LinePharma1}}</td>
+                                        <td>{{itemSatHalf.LinePharma2}}</td>
+                                        <td>{{itemSatHalf.LinePharma3}}</td>
+                                        <td>{{itemSatHalf.LinePharma4}}</td>
+                                        <td>{{itemSatHalf.LinePharma5}}</td>
+                                        <td>{{itemSatHalf.LinePharma6}}</td>
+                                        <td>{{itemSatHalf.VoiceMail1}}</td>
+                                        <td>{{itemSatHalf.LineGSK1}}</td>
+                                        <td>{{itemSatHalf.LineLP1}}</td>
+                                        <td>{{itemSatHalf.LineLP2}}</td>
+                                        <td>{{itemSatHalf.LineLP3}}</td>
+                                        <td>{{itemSatHalf.LineSanofi1}}</td>
+                                        <td>{{itemSatHalf.LineSanofi2}}</td>
+                                        <td>{{itemSatHalf.LineMD1}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- AGENTS -->
+                        <div class="tab-pane active" id="Agents">
+                            <div class="box box-success">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Agents</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-success btn-xs"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdAgents"
+                                                ng-click="GenerateRandomNumber()">
+                                            <strong>New Agents</strong>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <form method="get" name="frmSearchAgent" ng-submit="SearchAgents()">
+                                        <div class="col-md-12">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Groups</label>
+                                                    <select class="form-control select2" style="width: 100%;" id="ddlSearchAgents"
+                                                            ng-model="SearchAgentsParam.Groups">
+                                                        <option ng-repeat="item in Groups" value="{{item.value}}">{{item.label}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Line</label>
+                                                    <select class="form-control select2" style="width: 100%;" id="ddlLines"
+                                                            ng-model="SearchAgentsParam.Line">
+                                                        <option ng-repeat="item in Lines" value="{{item.value}}">{{item.label}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Agent Name</label>
+                                                    <input type="text" class="form-control" id="txtAgentsName" ng-model="SearchAgentsParam.AgentName"
+                                                            placeholder="Agent name" />
+                                                </div>
+                                            </div>                                                
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2">
+                                                <div class="form-group checkbox">
+                                                    <label>
+                                                        <input type="checkbox" ng-model="SearchAgentsParam.IsBackUp" />
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span class="label label-success">
+                                                            <b>IS BACK UP</b>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group checkbox">
+                                                    <label>
+                                                        <input type="checkbox" ng-model="SearchAgentsParam.IsActive" />
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span class="label label-success">
+                                                            <b>IS ACTIVE</b>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group checkbox">
+                                                    <label>
+                                                        <input type="checkbox" ng-model="SearchAgentsParam.IsUsed" />
+                                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                        <span class="label label-warning">
+                                                            <b>IS USED</b>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-primary btn-sm"
+                                                            id="btnSearchAgents">
+                                                        <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-pinterest btn-sm"
+                                                            id="btnClear">
+                                                        <strong>Clear</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div class="col-md-12">
+                                        <div class="col-md-6">
+                                            <div class="form-group pull-left">
+                                                <simple-pagination current-page="settings.currentPage"
+                                                                    offset="settings.offset"
+                                                                    page-limit="settings.pageLimit"
+                                                                    page-limits="settings.pageLimits"
+                                                                    on-update="callback()"
+                                                                    total="AgentsList.length"></simple-pagination>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12 col-sm-offset table-responsive no-padding">
+                                        <table id="tblAgents" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="color-1">
+                                                    <th class="text-center">#</th>
+                                                    <th>AgentId</th>
+                                                    <th>Agent Name</th>                                                        
+                                                    <th>Group</th>
+                                                    <th>Line</th>
+                                                    <th>Back up</th>
+                                                    <th>Is Active</th>
+                                                    <th>Is Used</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (AgentsList | limitTo:settings.pageLimit:settings.offset)" class="text-bold">
+                                                    <td class="text-center">
+                                                        <span>
+                                                            <button type="button" title="Update" class="btn btn-primary btn-xs"
+                                                                    data-toggle="modal" data-backdrop="static" data-keyboard="false"
+                                                                    data-target="#mdAgents" ng-click="GetAgentInfo(item)">
+                                                                <i class="fa fa-edit"></i>
+                                                            </button>
+                                                        </span>
+                                                    </td>
+                                                    <td>{{item.AgentId}}</td>
+                                                    <td>{{item.AgentName}}</td>
+                                                    <td>{{item.Groups}}</td>
+                                                    <td>{{item.Line}}</td>
+                                                    <td class="text-center">
+                                                        <small class="label text-center" ng-class="item.IsBackUp == true ? 'bg-green' : ''">
+                                                            {{item.IsBackUp == true ? 'X' : ''}}
+                                                        </small>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <small class="label text-center" ng-class="item.IsActive == true ? 'bg-green' : 'bg-red'">
+                                                            {{item.IsActive == true ? 'YES' : 'NO'}}
+                                                        </small>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <small class="label text-center" ng-class="item.IsUsed == true ? 'bg-green' : 'bg-red'">
+                                                            {{item.IsUsed == true ? 'YES' : 'NO'}}
+                                                        </small>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- AGENTS -->
+                        <!-- /.tab-pane -->
+                    </div>
+                    <!-- /.tab-content -->
+                </div>
+                <!-- /.nav-tabs-custom -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <div id="mdAgents" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 70%; margin: 30px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-info"><strong>Agent Information</strong></h4>
+                    </div>
+                    <form name="AgentsForm" method="post" ng-submit="Save()">
+                        <div class="modal-body">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Agent Number</label>
+                                                <input type="text" class="form-control" id="txtAgentId" disabled="disabled"
+                                                       ng-model="ShiftAgents.AgentId" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Agent Name</label>
+                                                <input type="text" class="form-control" id="txtAgentName"
+                                                       ng-model="ShiftAgents.AgentName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Agent Email</label>
+                                                <input type="text" class="form-control" id="txtAgentName"
+                                                       ng-model="ShiftAgents.AgentEmail" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Groups</label>
+                                                <select class="form-control select2" style="width: 100%;" id="ddlGroups"
+                                                        ng-model="ShiftAgents.Groups">
+                                                    <option ng-repeat="item in Groups" value="{{item.value}}">{{item.label}}</option>
+                                                </select>
+                                            </div>
+                                        </div>                                        
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Line</label>
+                                                <select class="form-control select2" style="width: 100%;" id="ddlLines"
+                                                        ng-model="ShiftAgents.Line">
+                                                    <option ng-repeat="item in Lines" value="{{item.value}}">{{item.label}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Join date</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control dateControl" id="dtDateExpiredFrom" 
+                                                           ng-model="ShiftAgents.JoinDate"
+                                                           data-format="dd-mm-yyyy" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 fix-chk-mg">
+                                            <div class="form-group checkbox">
+                                                <label>
+                                                    <input type="checkbox" ng-model="ShiftAgents.IsBackUp" />
+                                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                    <span class="label label-success">
+                                                        <b>IS BACK UP</b>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 fix-chk-mg">
+                                            <div class="form-group checkbox">
+                                                <label>
+                                                    <input type="checkbox" ng-model="ShiftAgents.IsActive" />
+                                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                    <span class="label label-success">
+                                                        <b>IS ACTIVE</b>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 fix-chk-mg">
+                                            <div class="form-group checkbox">
+                                                <label>
+                                                    <input type="checkbox" ng-model="ShiftAgents.IsUsed" />
+                                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                    <span class="label label-warning">
+                                                        <b>IS USED</b>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Note</label>
+                                                <textarea class="textarea" placeholder="Place some text here"
+                                                          ng-model="ShiftAgents.Note" id="txtNote"
+                                                          style="width: 100%; height: 100px; font-size: 14px;
+                                                line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fa fa-save"></i>&nbsp;Save
+                                    </button>
+                                    <button type="button" class="btn btn-pinterest btn-sm" 
+                                            ng-click="ResetShiftAgents()"
+                                            data-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/Scripts/Controller/ScheduleTimerController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        //$('.dateControl').datepicker('setDate', today);
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>
+
+

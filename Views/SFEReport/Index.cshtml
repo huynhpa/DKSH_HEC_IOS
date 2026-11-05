@@ -1,0 +1,390 @@
+﻿@{
+    ViewBag.Title = "SFE Performance Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblSFEReport th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblSFEReport td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #0FAAE8;
+    }
+</style>
+
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+
+<div class="ng-cloak" ng-controller="SFEReportController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <section class="content-header">
+        <h1>
+            SFE Report
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">SFE Report</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active" ng-click="Reset()"><a href="#SFEReport" data-toggle="tab" aria-expanded="false">SFE Report</a></li>
+                        <li class="" ng-click="Reset()"><a href="#SFEReportSetting" data-toggle="tab" aria-expanded="false">Common setting</a></li>
+                    </ul>
+                    <div class="col-md-12 tab-content">
+                        <!-- BEGIN SEARCH CALL FORM -->
+                        <div class="tab-pane active" id="SFEReport">
+                            <div class="box box-success">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">SFE Performance</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <form ng-submit="SFEPerformanceReport()" name="formSFEPerformanceReport" method="get">
+                                        <div class="col-md-12">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Salereps</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            id="ddlPDACode" ng-model="SearchParam.PDACode">
+                                                        <option value="">--Select--</option>
+                                                        <option ng-repeat="item in SFEOrgchartList" value="{{item.PDACode}}">{{item.Position}}_{{item.ASMFLMSalesman}} {{item.PDACode}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Month (mm-yyyy)</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control monthControl"
+                                                               id="dtFocusMonth" ng-model="SearchParam.months"
+                                                               data-format="mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block bg-aqua-active btn-sm">
+                                                        <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn btn-block btn-success btn-sm" ng-click="ExportSFEPerformance()">
+                                                        <i class="fa fa-file-excel-o"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="box box-success">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="SFEPerformanceReportList.length"></simple-pagination>
+                                        <br />
+                                        <table id="tblSFEReport" class="table table-bordered table-striped table-hover">
+                                            <thead>
+                                                <tr class="bg-green-active">
+                                                    <th rowspan="2" class="bg-aqua-gradient">Month</th>
+                                                    <th rowspan="2" class="bg-aqua-gradient">Performance date</th>
+                                                    <th colspan="4" class="bg-purple-active">Team</th>
+                                                    <th colspan="2"># Sales Rep</th>
+                                                    <th rowspan="2">Dif per Rep</th>
+                                                    <th colspan="4">1. Call Month + GPS Call</th>
+                                                    <th colspan="3">2. Effective Call</th>
+                                                    <th colspan="3">3. Coverage</th>
+                                                    <th colspan="3">4. Active OL by Rep</th>
+                                                    <th rowspan="2">5. Selling Brands</th>
+                                                    <th rowspan="2">6. Selling SKU per Rep</th>
+                                                    <th rowspan="2">7. SKU per order (EP)</th>
+                                                    <th rowspan="2">8. Value per order</th>
+                                                </tr>
+                                                <tr class="bg-green-active">
+                                                    <th class="bg-purple-active">SFA Code</th>
+                                                    <th class="bg-purple-active">PDA</th>
+                                                    <th class="bg-purple-active">ASM/FLM/Salesman</th>
+                                                    <th class="bg-purple-active">Pos</th>
+                                                    <th>Active</th>
+                                                    <th>Non Active</th>
+                                                    <th>Actual</th>
+                                                    <th>Target</th>
+                                                    <th>%</th>
+                                                    <th>Call/Day</th>
+                                                    <th>Actual</th>
+                                                    <th>Target</th>
+                                                    <th>%</th>
+                                                    <th>Actual</th>
+                                                    <th>Target</th>
+                                                    <th>%</th>
+                                                    <th>Actual</th>
+                                                    <th>Target</th>
+                                                    <th>%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (SFEPerformanceReportList | filter : {Agent: SearchParam.Agent} | limitTo:settings.pageLimit:settings.offset)"
+                                                    ng-class-odd="'tr_odd'" ng-class-even="">
+                                                    <td>{{item.months}}</td>
+                                                    <td>{{item.performance_date}}</td>
+                                                    <td>{{item.sfa_code}}</td>
+                                                    <td>{{item.pda_code}}</td>
+                                                    <td>{{item.salesrep_name}}</td>
+                                                    <td>{{item.position}}</td>
+                                                    <td class="text-right">{{item.salesrep_active}}</td>
+                                                    <td class="text-right">{{item.salesrep_nonactive}}</td>
+                                                    <td class="text-right">{{item.dif_per_rep | number:0}}</td>
+                                                    <td class="text-right">{{item.call_month_actual | number}}</td>
+                                                    <td class="text-right">{{item.call_month_target | number}}</td>
+                                                    <td class="text-right" ng-class="{'text-green': item.call_month_percent >= 100, 'text-red': item.call_month_percent < 100}">
+                                                        {{item.call_month_percent | number:2}}
+                                                    </td>
+                                                    <td class="text-right">{{item.call_per_day | number:0}}</td>
+                                                    <td class="text-right">{{item.call_effective_actual | number}}</td>
+                                                    <td class="text-right">{{item.call_effective_target | number}}</td>
+                                                    <td class="text-right" ng-class="{'text-green': item.call_effective_percent >= 100, 'text-red': item.call_effective_percent < 100}">
+                                                        {{item.call_effective_percent | number:2}}
+                                                    </td>
+                                                    <td class="text-right">{{item.coverage_actual | number}}</td>
+                                                    <td class="text-right">{{item.coverage_target | number}}</td>
+                                                    <td class="text-right" ng-class="{'text-green': item.coverage_percent >= 100, 'text-red': item.coverage_percent < 100}">
+                                                        {{item.coverage_percent | number:2}}
+                                                    </td>
+                                                    <td class="text-right">{{item.active_ol_actual | number}}</td>
+                                                    <td class="text-right">{{item.active_ol_target | number}}</td>
+                                                    <td class="text-right" ng-class="{'text-green': item.active_ol_percent >= 100, 'text-red': item.active_ol_percent < 100}">
+                                                        {{item.active_ol_percent | number:2}}
+                                                    </td>
+                                                    <td class="text-right">{{item.selling_brand}}</td>
+                                                    <td class="text-right">{{item.sku_per_order}}</td>
+                                                    <td class="text-right">{{item.sku_per_rep}}</td>
+                                                    <td class="text-right">{{item.value_per_order}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END SEARCH CALL FORM -->
+                        <!-- Begin constant list -->
+                        <div class="tab-pane" id="SFEReportSetting">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Common setting</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <form name="formUpload" method="post">
+                                        <div class="col-md-12">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Data type</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            id="ddlConstant" ng-model="SearchParam.ConstantType">
+                                                        <option value="">--Select--</option>
+                                                        <option value="TARGET_CALL">TARGET CALL</option>
+                                                        <option value="DATA_SALE">DATA SALE</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Month (mm-yyyy)</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control monthControl"
+                                                               id="dtworking_month" ng-model="SearchParam.working_month"
+                                                               data-format="mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 pull-left fix-chk-mg" ng-show="SearchParam.ConstantType == 'TARGET_CALL'">
+                                                <div class="form-group has-error">
+                                                    <input type="file" class="form-control" id="txtTargetCall"
+                                                           upload-file="TargetCallFile"
+                                                           accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 pull-left fix-chk-mg" ng-show="SearchParam.ConstantType == 'DATA_SALE'">
+                                                <div class="form-group has-error">
+                                                    <input type="file" class="form-control" id="txtDataSale"
+                                                           upload-file="DataSaleFile"
+                                                           accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-left fix-chk-mg" ng-show="SearchParam.ConstantType == 'TARGET_CALL'">
+                                                <div class="form-group">
+                                                    <button type="button" title="Target call" ng-click="UploadTargetCall()" class="btn btn-block bg-blue-active btn-sm">
+                                                        <i class="fa fa-cloud-upload"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-left fix-chk-mg" ng-show="SearchParam.ConstantType == 'DATA_SALE'">
+                                                <div class="form-group">
+                                                    <button type="button" title="Data sale" ng-click="UploadDataSale()" class="btn btn-block bg-green-active btn-sm">
+                                                        <i class="fa fa-cloud-upload"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>                                       
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Constant List</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblSFEReportSetting" class="table table-bordered">
+                                            <thead>
+                                                <tr class="bg-green-active">
+                                                    <th>Code</th>
+                                                    <th>Name</th>
+                                                    <th>Min Target</th>
+                                                    <th>Max Target</th>
+                                                    <th>Update date</th>
+                                                    <th>Note</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (SFEReportConstList | limitTo:settings.pageLimit:settings.offset)"
+                                                    ng-class-odd="'tr_odd'" ng-class-even="">
+                                                    <td>{{item.ConstCode}}</td>
+                                                    <td>{{item.ConstName}}</td>
+                                                    <td>{{item.MinTarget}}</td>
+                                                    <td>{{item.MaxTarget}}</td>
+                                                    <td>{{item.UpdateDate}}</td>
+                                                    <td>{{item.Note}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Constant List -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/SFEReportController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+        $('.dateControl').datepicker('setDate', currentDate);
+
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            minViewMode: "months",
+            orientation: 'bottom',
+            useCurrent: true,
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        })
+    })
+</script>

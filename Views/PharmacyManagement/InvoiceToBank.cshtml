@@ -1,0 +1,511 @@
+﻿@{
+    ViewBag.Title = "Transfer notification";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblInvoice th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblInvoice td {
+        vertical-align: middle;
+    }
+    .tr_odd {
+        background-color: #F6F4B8;
+    }
+    .vmiddle {
+        vertical-align: middle !important;
+    }
+    .dateControl {
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 400px;
+    }
+    
+</style>
+
+<div class="ng-cloak" ng-controller="InvoiceToBankController">
+    <section class="content-header">
+        <h1>
+            Transfer notification
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pharmacy</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <a href="@Url.Action("TransferLog", "PharmacyManagement")" class="btn btn-link">Transfer Log</a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchInvoice()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Delivery No</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.DeliveryNo"
+                                       ng-change="SetPaging()" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Invoice No</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.InvoiceNo"
+                                       ng-change="SetPaging()" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Cust Code</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.CustCode" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <!-- /.form-group -->
+                            <div class="form-group">
+                                <label>Create date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                           ng-model="SearchParam.CreateDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2" style="margin-top: 25px;">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdConvertPDF">
+                                    Convert PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Clear()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm" ng-click="DownloadInvoices()">
+                                    <i class="fa fa-cloud-download"></i> Download All
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdTransferNotification">
+                                    <i class="fa fa-cloud-upload"></i> Upload data
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm" ng-click="DownloadTemplate()">
+                                    <i class="fa fa-cloud-download"></i> Template
+                                </button>
+                            </div>
+                        </div>
+                        @*<div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="DeleteInvoice()">
+                                    <i class="fa fa-trash-o"></i> Delete data
+                                </button>
+                            </div>
+                        </div>*@
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="col-md-12 text-right">
+                        <div class="form-group">
+                            <label class="label label-success">{{totalItems}} rows</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">                    
+                    <table id="tblInvoice" class="table table-bordered">
+                        <thead>
+                            <tr class="text-green">
+                                <th>Action</th>
+                                <th>Share Status</th>
+                                <th>Customer Code</th>
+                                <th>Customer Name</th>
+                                <th>Plant</th>
+                                <th>Invoice Date</th>
+                                <th>Address</th>
+                                <th>Create by</th>
+                                <th>Create date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (InvoiceList)"
+                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                <td>
+                                    <span>
+                                        <button type="button" title="View" class="btn btn-info btn-sm" ng-click="ViewInvoiceDetail(item)"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdViewInvoiceDetail">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" class="btn btn-primary btn-sm" ng-click="SetPlant(item)"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdShare" title="Share Invoice">
+                                            <i class="fa fa-share-alt"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" class="btn btn-success btn-sm" ng-click="ExportExcel(item)" title="Download Excel">
+                                            <i class="fa fa-file-excel-o"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" class="btn btn-warning btn-sm" ng-click="ExportPDF(item)" title="Download PDF">
+                                            <i class="fa fa-file-pdf-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <label ng-if="item.ShareStatus == 1">
+                                        <span class="label label-success"><b>SUCCESS</b></span>
+                                    </label>
+                                    <label ng-if="item.ShareStatus == 0">
+                                        <span class="label label-danger"><b>FAILED</b></span>
+                                    </label>
+                                </td>
+                                <td>{{item.CustCode}}</td>
+                                <td>{{item.CustName}}</td>
+                                <td>{{item.Plant}}</td>
+                                <td>{{item.InvoiceDate}}</td>
+                                <td>{{item.Addrs}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.CreateDate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdTransferNotification" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 80%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload data and Process</h4>
+                </div>
+                <form name="TransferNotificationForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtInvoiceFile"
+                                                   upload-file="InvoiceFileUpload"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Deleted | Transfer Log</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlUploadStatus" ng-model="UploadStatus.Status">
+                                                <option value="1">Deleted</option>
+                                                <option value="0">Transfer log</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group" style="margin: 30px 0 0 0">
+                                            <label class="text-light-blue">Upload date : {{UploadStatus.CurrentDate}}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success btn-sm" ng-click="UploadAndProcess()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload &amp; Process
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- VIEW INVOICE DETAILS -->
+    <div id="mdViewInvoiceDetail" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Invoice detail</h4>
+                </div>
+                <form name="InvoiceDetailForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <div class="col-md-12">
+                                    <table id="tblInvoice" class="table table-bordered">
+                                        <thead>
+                                            <tr class="text-green">
+                                                <th>InvoiceNo</th>
+                                                <th>DeliveryNo</th>
+                                                <th>Material</th>
+                                                <th>Descriptions</th>
+                                                <th>DeliveryQty</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in InvoiceDetails"
+                                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                                <td>{{item.InvoiceNo}}</td>
+                                                <td>{{item.DeliveryNo}}</td>
+                                                <td>{{item.Material}}</td>
+                                                <td>{{item.Descriptions}}</td>
+                                                <td class="text-right">{{item.DeliveryQty}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END INVOICE DETAILS -->
+    <!-- SHARE -->
+    <div id="mdShare" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Share - {{InvoiceName}}</h4>
+                </div>
+                <form name="ShareForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Share method</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlShareVia" ng-model="SendMethod">
+                                                <option ng-repeat="item in ShareMethod" value="{{item.key}}">{{item.value}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">Sender *</label>
+                                            <input type="text" class="form-control" ng-model="InvoiceDto.Sender" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Password *</label>
+                                            <input type="password" class="form-control" ng-model="InvoiceDto.Password" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Receiver *</label>
+                                            <input type="text" class="form-control" placeholder="Receiver separate by semicolon (;)" 
+                                                   ng-model="InvoiceDto.Receiver" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>CC</label>
+                                            <input type="text" class="form-control" placeholder="CC separate by semicolon (;)" 
+                                                   ng-model="InvoiceDto.CC" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Content *</label>
+                                            <textarea type="text" class="editor" id="txtContent" ng-model="InvoiceDto.Content" 
+                                                      placeholder="Place content here..."
+                                                      style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" ng-click="Send()">
+                                    <i class="fa fa-send-o"></i> Send
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END SHARE -->
+    <!-- CONVERT PDF -->
+    <div id="mdConvertPDF" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%; margin: 50px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Convert &amp; Download PDF</h4>
+                </div>
+                <form name="ConvertPDFForm">
+                    <div class="modal-body">
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-7">
+                                        <div class="form-group">
+                                            <label>Excel file</label>
+                                            <input type="file" class="form-control" id="txtConvertPDF"
+                                                   upload-file="ExcelFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2" style="margin-top:25px" ng-show="PDFConvert.Status">
+                                        <button type="button" class="btn btn-success btn-sm" ng-click="DownloadPDFConverted()">
+                                            <i class="fa fa-download"></i> Download PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary btn-sm" ng-click="ConvertPDF()">
+                                    <i class="fa fa-file-pdf-o"></i>&nbsp;Convert PDF
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/InvoiceToBankController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        $('.dateControl').datepicker('setDate', today);
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });        
+        $('.select2').select2();        
+    })
+</script>

@@ -1,0 +1,735 @@
+﻿@{
+    ViewBag.Title = "Human Allocation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .dateControl {
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tb_HumanAllocation th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tb_HumanAllocation td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+    .col-log-in {
+        background-color: #D8F7A5;
+    }
+    .col-log-out {
+        background-color: #FE84B8;
+    }
+    .col-call-time {
+        background-color: #FC8946;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+</style>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.select2').select2();
+    })
+</script>
+<div class="ng-cloak" ng-controller="HumanAllocationController">
+    <section class="content-header">
+        <h1>
+            Human Allocation
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Human Allocation</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Campaign</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchHumanAllocation()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Agent</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlAgents" ng-model="SearchParam.AgentId">
+                                    <option ng-repeat="item in AgentList" value="{{item.AgentId}}">{{item.AgentId}}-{{item.AgentName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Campaign</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlCampaign" ng-model="SearchParam.CampaignId">
+                                    <option ng-repeat="item in CampaignList" value="{{item.CampaignId}}">{{item.CampaignName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Login date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                           ng-model="SearchParam.LoginDate" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-sm btn-block btn-info">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-pinterest" ng-click="ClearSearchParam()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-1 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-info"
+                                        data-backdrop="static" data-keyboard="false"
+                                        ng-click="SetLoginStatus()"
+                                        data-toggle="modal" data-target="#mdNewAndUpdate">
+                                    New
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-success"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdReportHumanAllocation">
+                                    <i class="fa fa-file-excel-o"></i> Report
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-warning">
+                                    Over view
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group pull-left">
+                            <simple-pagination current-page="settings.currentPage"
+                                               offset="settings.offset"
+                                               page-limit="settings.pageLimit"
+                                               page-limits="settings.pageLimits"
+                                               on-update="callback()"
+                                               total="HumanAllocationList.length"></simple-pagination>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Human Allocation -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Time in campaign</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive col-md-12">
+                    <table id="tb_HumanAllocation" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Agent</th>
+                                <th>Campaign name</th>
+                                <th class="col-log-in">Login Date</th>
+                                <th class="col-log-in">Login Time</th>
+                                <th class="col-log-out">Logout Date</th>
+                                <th class="col-log-out">Logout Time</th>
+                                <th class="col-call-time">Call In Hours</th>
+                                <th class="col-call-time">Call In Minutes</th>
+                                <th>Create Date</th>
+                                <th>Create By</th>
+                                <th>Update Date</th>
+                                <th>Update By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = HumanAllocationList">
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                            ng-click="GetLoginOrLogoutByAgent(item)">
+                                        <i class="fa fa-gears"></i>
+                                    </button>
+                                </td>
+                                <td>{{item.AgentId}} - {{item.AgentName}}</td>
+                                <td>{{item.CampaignName}}</td>
+                                <td class="col-log-in">{{item.LoginDate}}</td>
+                                <td class="col-log-in">{{item.SignInTime}}</td>
+                                <td class="col-log-out">{{item.LogoutDate}}</td>
+                                <td class="col-log-out">{{item.SignOutTime}}</td>
+                                <td class="col-call-time text-right text-bold">{{item.CallInHours | number:2}}</td>
+                                <td class="col-call-time text-right text-bold">{{item.CallInMinutes | number:2}}</td>
+                                <td>{{item.CreateDate}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>
+                                <td>{{item.UpdateBy}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Human Allocation -->
+
+
+        <!-- Other Tasks -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search jobs</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchLogAgentJob()" name="formSearchAgentJob" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Agent</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlAgents" ng-model="SearchAgentJob.AgentId">
+                                    <option ng-repeat="item in AgentList" value="{{item.AgentId}}">{{item.AgentId}}-{{item.AgentName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Login date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                           ng-model="SearchAgentJob.SignInDate" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-sm btn-block btn-sm btn-info">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-sm btn-pinterest" ng-click="ClearAgentJobModel()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-1 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-sm btn-info"
+                                        data-backdrop="static" data-keyboard="false"
+                                        ng-click="ClearAgentJobModel()"
+                                        data-toggle="modal" data-target="#mdLoginLogoutAgentJob">
+                                    New
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-sm btn-success"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdLogAgentJobReport">
+                                    <i class="fa fa-file-excel-o"></i> Report
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-sm btn-block btn-warning">
+                                    Over view
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group pull-left">
+                            <simple-pagination current-page="settings_job.currentPage"
+                                               offset="settings_job.offset"
+                                               page-limit="settings_job.pageLimit"
+                                               page-limits="settings_job.pageLimits"
+                                               on-update="callback()"
+                                               total="LogAgentJobList.length"></simple-pagination>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Jobs</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive col-md-12">
+                    <table id="tb_HumanAllocation" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Job name</th>
+                                <th>Agent</th>
+                                <th class="col-log-in">Login date</th>
+                                <th class="col-log-in">Login time</th>
+                                <th class="col-log-out">Logout date</th>
+                                <th class="col-log-out">Logout time</th>
+                                <th class="col-call-time">Job in hours</th>
+                                <th class="col-call-time">Job in minutes</th>
+                                <th>Remark</th>
+                                <th>Create date</th>
+                                <th>Create by</th>
+                                <th>Update date</th>
+                                <th>Update by</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = LogAgentJobList">
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                            data-backdrop="static" data-keyboard="false"
+                                            data-toggle="modal"
+                                            ng-click="GetAgentJobDetail(item)">
+                                        <i class="fa fa-gears"></i>
+                                    </button>
+                                </td>
+                                <td>{{item.JobName}}</td>
+                                <td>{{item.AgentId}}-{{item.AgentName}}</td>
+                                <td class="col-log-in">{{item.SignInDate}}</td>
+                                <td class="col-log-in">{{item.SignInTime}}</td>
+                                <td class="col-log-out">{{item.SignOutDate}}</td>
+                                <td class="col-log-out">{{item.SignOutTime}}</td>
+                                <td class="col-call-time text-right text-bold">{{item.JobInHours | number:2}}</td>
+                                <td class="col-call-time text-right text-bold">{{item.JobInMinutes | number:2}}</td>
+                                <td>{{item.Remark}}</td>
+                                <td>{{item.CreateDate}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>
+                                <td>{{item.UpdateBy}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Other Tasks -->
+    </section>
+    <!-- Human allocation insert and update -->
+    <div id="mdNewAndUpdate" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Login &amp; Logout Call Time</h4>
+                </div>
+                <form name="NewAndUpdateForm" ng-submit="SaveLoginOrLogout()">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Agents</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlAgents" ng-model="HumanAllocationModel.AgentId">
+                                                <option ng-repeat="item in AgentList" value="{{item.AgentId}}">{{item.AgentId}}-{{item.AgentName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label>Campaign</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlCampaign" ng-model="HumanAllocationModel.CampaignId">
+                                                <option ng-repeat="item in CampaignList" value="{{item.CampaignId}}">{{item.CampaignName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-info">Login Time (24h)</label>
+                                            <input type="text" disabled="disabled" ng-model="HumanAllocationModel.SignInTime" class="form-control" id="txtSignInTime" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-info">Logout Time (24h)</label>
+                                            <input type="text" disabled="disabled" ng-model="HumanAllocationModel.SignOutTime" class="form-control" id="txtSignOutTime" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-success">Login date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" ng-model="HumanAllocationModel.LoginDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 bootstrap-timepicker">
+                                        <div class="form-group">
+                                            <label class="text-success">Login time</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control timepicker" id="dtSignInTime" />
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Logout date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" ng-model="HumanAllocationModel.LogoutDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 bootstrap-timepicker">
+                                        <div class="form-group">
+                                            <label class="text-red">Logout time</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control timepicker" id="dtSignOutTime" />
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">
+                                    Submit
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!---->
+    <!-- Login & Logout Other Task -->
+    <div id="mdLoginLogoutAgentJob" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 20px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Login &amp; Logout Agent Job</h4>
+                </div>
+                <form name="frmLogAgentJob" method="post" ng-submit="SubmitLogAgentJob()">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">Agents *</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlAgents" ng-model="LogAgentJobModel.AgentId">
+                                                <option ng-repeat="item in AgentList" value="{{item.AgentId}}">{{item.AgentId}}-{{item.AgentName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">Job Name *</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlJob" ng-model="LogAgentJobModel.JobCode">
+                                                <option ng-repeat="item in AgentJobList" value="{{item.JobCode}}">{{item.JobName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2" ng-show="IsUpdateAgentJob">
+                                        <div class="form-group">
+                                            <label class="text-info">Login time (24h)</label>
+                                            <input type="text" disabled="disabled" ng-model="LogAgentJobModel.SignInTime" class="form-control" id="txtSignInTime" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2" ng-show="IsUpdateAgentJob">
+                                        <div class="form-group">
+                                            <label class="text-info">Logout time (24h)</label>
+                                            <input type="text" disabled="disabled" ng-model="LogAgentJobModel.SignOutTime" class="form-control" id="txtSignOutTime" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-success">Login date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" ng-model="LogAgentJobModel.SignInDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 bootstrap-timepicker">
+                                        <div class="form-group">
+                                            <label class="text-success">Login time</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control timepicker" id="dtSignInTimeJob" />
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" ng-show="IsUpdateAgentJob">
+                                        <div class="form-group">
+                                            <label class="text-red">Logout date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" ng-model="LogAgentJobModel.SignOutDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 bootstrap-timepicker" ng-show="IsUpdateAgentJob">
+                                        <div class="form-group">
+                                            <label class="text-red">Logout time</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control timepicker" id="dtSignOutTimeJob" />
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label>Remark</label>
+                                            <textarea type="text" class="editor" id="txtRemark" ng-model="LogAgentJobModel.Remark"
+                                                      placeholder="Place remark here..."
+                                                      style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">
+                                    Submit
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End Login & Logout Other Task -->
+    <!-- Report -->
+    <div id="mdReportHumanAllocation" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Human allocation report</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Campaign / Agent</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlHospitalMedical" ng-model="HumanAllocationModel.ReportType">
+                                                <option ng-repeat="item in ReportTypeList" value="{{item.value}}">{{item.label}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Create from</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" data-format="dd-mm-yyyy"
+                                                       ng-model="HumanAllocationModel.CreateDateFrom" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>to date (dd-mm-yyyy)</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" data-format="dd-mm-yyyy"
+                                                       ng-model="HumanAllocationModel.CreateDateTo" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" ng-click="Export()">
+                                    <i class="fa fa-file-excel-o"></i>&nbsp;Export
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End Report -->
+</div>
+<script src="/Scripts/Controller/HumanAllocationController.js"></script>
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.dateControl').datepicker('setDate', currentDate);
+        $('.select2').select2();
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    });
+</script>

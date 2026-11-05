@@ -1,0 +1,611 @@
+﻿@{
+    ViewBag.Title = "Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+    .dateControl {
+    }
+    .monthControl {
+    }
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblRequiredLicenses th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblRequiredLicenses td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+    .color-1 {
+        background-color: #7CD8FD;
+    }
+    .color-2 {
+        background-color: #85E306;
+    }
+    .color-3 {
+        background-color: #F0D10D;
+    }
+    .color-4 {
+        background-color: #FABF50;
+    }
+    .color-5 {
+        background-color: #DEDCD8;
+    }
+    .color-6 {
+        background-color: #C7DC85;
+    }
+    .color-7 {
+        background-color: #99d6ff;
+    }
+    .color-8 {
+        background-color: #ff99b3;
+    }
+    .color-9 {
+        background-color: #7CD8FD;
+    }
+    .color-10 {
+        background-color: #7CD8FD;
+    }
+</style>
+<script src="/Scripts/Controller/CDIController.js"></script>
+<div class="ng-cloak" ng-controller="CdiController">
+    <section class="content-header">
+        <h1>
+            Report Certification
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Report Licenses</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Filter</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Report type</label>
+                            <select class="form-control select2" style="width: 100%;" id="ddlReportType"
+                                    ng-model="ReportModel.ReportType" ng-change="IsChangeReportType()">
+                                <option value="DDKXB">(Daily) Điều kiện xuất bán</option>
+                                <option value="CRT">Create by user</option>
+                                <option value="UDT">Update by user</option>
+                                <option value="LICENSES">Licenses</option>
+                                <option value="LICENSES_EXPIRED">Total License Expired</option>
+                                <option value="LICENSES_COMING_EXPIRE">Total License Coming Expire</option>
+                                <option value="CHANNEL_HISTORY">Channel History</option>
+                            </select>
+                        </div>
+                    </div>                    
+                    <!-- Đủ kiều kiện xuất bán -->
+                    <div class="col-md-4" ng-show="ReportModel.ReportType == 'DDKXB'">
+                        <div class="form-group">
+                            <label>Điều kiện xuất bán</label>
+                            <select class="form-control select2" style="width: 100%;" multiple="multiple" id="ddlDDKXB"
+                                    ng-model="ReportModel.DDKXB">
+                                <option ng-repeat="item in DDKXBList" value="{{item.value}}">{{item.label}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-1" ng-show="ReportModel.ReportType == 'DDKXB'">
+                        <div class="form-group">
+                            <label>YES/NO</label>
+                            <select class="form-control select2" style="width: 100%;" id="ddlDDKXBYN"
+                                    ng-model="ReportModel.DDKXBYN">
+                                <option value="1">YES</option>
+                                <option value="0">NO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3" ng-show="ReportModel.ReportType == 'CRT' || ReportModel.ReportType == 'UDT' || ReportModel.ReportType == 'LICENSES_HISTORY'">
+                        <div class="form-group">
+                            <label>By User</label>
+                            <select class="form-control select2" style="width:100%"
+                                    data-placeholder="Select a user"
+                                    ng-model="ReportModel.ByUser">
+                                @foreach (var user in ViewBag.UserTeamCDI)
+                                {
+                                    <option value="@user.UserId">@user.Fullname</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2" ng-show="ReportModel.ReportType == 'DDKXB' || ReportModel.ReportType == 'CRT' || ReportModel.ReportType == 'UDT' || ReportModel.ReportType == 'LICENSES_HISTORY'">
+                        <div class="form-group">
+                            <label>From (dd-mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl" id="dtFromDate" ng-model="ReportModel.FromDate"
+                                       data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2" ng-show="ReportModel.ReportType == 'DDKXB' || ReportModel.ReportType == 'CRT' || ReportModel.ReportType == 'UDT' || ReportModel.ReportType == 'LICENSES_HISTORY'">
+                        <div class="form-group">
+                            <label>To (dd-mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl" id="dtToDate" ng-model="ReportModel.ToDate"
+                                       data-format="dd-mm-yyyy" ng-disabled="IsDisabled" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Đủ kiều kiện xuất bán -->
+                    <!-- License -->
+                    <div class="col-md-3" ng-show="ReportModel.ReportType == 'LICENSES'">
+                        <div class="form-group">
+                            <label>Status Licenses</label>
+                            <select class="form-control select2" style="width: 100%;" id="ddlStatusLicenses"
+                                    ng-model="ReportModel.LicensesYESNO">
+                                <option value="1">Full License</option>
+                                <option value="0">Lack of License</option>
+                                <option value="2">No Control License</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2" ng-show="ReportModel.ReportType == 'LICENSES'">
+                        <div class="form-group">
+                            <label>CGrpCode</label>
+                            <select class="form-control select2" style="width: 100%;" multiple="multiple" ng-model="ReportModel.CGrpCode">
+                                @foreach (var item in ViewBag.CustGroup)
+                                {
+                                    <option value="@item.CGrpCode">@item.CGrpCode</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <!-- License -->
+                    <!-- channel history -->
+                    <div class="col-md-2" ng-show="ReportModel.ReportType == 'CHANNEL_HISTORY'">
+                        <div class="form-group">
+                            <label>From (mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control monthControl" id="dtFromMonth" ng-model="ReportModel.FromMonth"
+                                       data-format="mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2" ng-show="ReportModel.ReportType == 'CHANNEL_HISTORY'">
+                        <div class="form-group">
+                            <label>To (mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control monthControl" id="dtToMonth" ng-model="ReportModel.ToMonth"
+                                       data-format="mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group" ng-show="ReportModel.ReportType == 'DDKXB'">
+                            <button type="button" class="btn btn-block btn-sm btn-success" id="btnExportG950" ng-click="ExportG950()">
+                                <i class="fa fa-file-excel-o"></i> Export G950
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group" ng-show="ReportModel.ReportType == 'DDKXB'">
+                            <button type="button" class="btn btn-block btn-sm btn-pink" id="btnProductByFile" ng-click="ExportProductByFile()">
+                                <i class="fa fa-file-zip-o"></i> Products By File
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-pinterest" id="btnExport" ng-click="ClearReportFilter()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-success" id="btnExport" ng-click="ExportReport()">
+                                <i class="fa fa-file-excel-o"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right" ng-show="ReportModel.ReportType == 'LICENSES'">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-info" id="btnExport" ng-click="SearchRequiredLicenses()">
+                                 Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info" ng-show="ReportModel.ReportType == 'LICENSES'">
+            <div class="box-header with-border">
+                <h3 class="box-title">Required Licenses List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="form-group pull-left">
+                        <simple-pagination current-page="SetPagingRequiredLicenses.currentPage"
+                                           offset="SetPagingRequiredLicenses.offset"
+                                           page-limit="SetPagingRequiredLicenses.pageLimit"
+                                           page-limits="SetPagingRequiredLicenses.pageLimits"
+                                           on-update="callback()"
+                                           total="RequiredLicenses.length"></simple-pagination>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-12 table-responsive no-padding">
+                        <table id="tblRequiredLicenses" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="color-1" rowspan="2">Cust Code</th>
+                                    <th class="color-1" rowspan="2">Cust Name</th>
+                                    <th class="color-2" rowspan="2">Status Licenses</th>
+                                    <th class="color-3" rowspan="2">License type missing</th>
+                                    <th class="color-4" colspan="3">GPP</th>
+                                    <th class="color-4" colspan="3">GDP</th>
+                                    <th class="color-4" colspan="3">GSP</th>
+                                    <th class="color-3" rowspan="2">TaxCode</th>
+                                    <th class="color-5" colspan="2">GPKD</th>
+                                    <th class="color-6" rowspan="2">Công bố đủ điều kiện<br/> mua bán TTBYT (COE)</th>
+                                    <th class="color-6" colspan="3">Giấy chứng nhận <br/>đủ điều kiện<br/> kinh doanh dược</th>
+                                    <th class="color-4" colspan="3">Giấy phép hoạt động <br/>khám chữa bệnh</th>
+                                    <th class="color-6" rowspan="2">Danh mục kỹ thuật có tiêm <br />Botox | Xeomin (Botulinum)</th>
+                                    <th class="color-7" colspan="5">Phạm vi <br />kinh doanh</th>
+                                    <th class="color-8" colspan="5">Đủ điều kiện<br /> xuất bán</th>
+                                    <th class="color-3" rowspan="2">Is Manual</th>
+                                    <th class="color-1" rowspan="2">Remark</th>
+                                    <th class="color-1" rowspan="2">Address</th>
+                                    <th class="color-1" rowspan="2">District</th>
+                                    <th class="color-1" rowspan="2">Province</th>
+                                    <th class="color-1" rowspan="2">Region</th>
+                                    <th class="color-1" rowspan="2">Channel</th>
+                                    <th class="color-1" rowspan="2">CGrpCode</th>
+                                </tr>
+                                <tr>
+                                    <!-- GPP -->
+                                    <th class="color-4">From</th>
+                                    <th class="color-4">To</th>
+                                    <th class="color-4">Remain Days</th>
+                                    <!-- GDP -->
+                                    <th class="color-4">From</th>
+                                    <th class="color-4">To</th>
+                                    <th class="color-4">Remain Days</th>
+                                    <!-- GSP -->
+                                    <th class="color-4">From</th>
+                                    <th class="color-4">To</th>
+                                    <th class="color-4">Remain Days</th>
+                                    <!-- GPKD -->
+                                    <th class="color-5">GPKD</th>
+                                    <th class="color-5">Ngành nghề<br />kinh doanh<br/>có mua bán TTBYT</th>
+                                    <!-- Giấy chứng nhận đủ điều kiện kinh doanh dược -->
+                                    <th class="color-6">From</th>
+                                    <th class="color-6">To</th>
+                                    <th class="color-6">Remain Days</th>
+                                    <!-- Giấy phép hoạt động khám chữa bệnh -->
+                                    <th class="color-4">From</th>
+                                    <th class="color-4">To</th>
+                                    <th class="color-4">Remain Days</th>
+                                    <!-- Phạm vi kinh doanh -->
+                                    <th class="color-7">Thuốc dạng <br />phối hợp <br />có chứa dược chất<br /> gây nghiện</th>
+                                    <th class="color-7">Thuốc độc, <br />nguyên liệu độc <br />làm thuốc</th>
+                                    <th class="color-7">Thuốc dược chất<br /> thuộc danh mục <br />bị cấm sử dụng</th>
+                                    <th class="color-7">Sinh phẩm</th>
+                                    <th class="color-7">Vaccin</th>
+                                    <!-- Đủ điều kiện xuất bán -->
+                                    <th class="color-8">Thuốc dạng <br />phối hợp <br />có chứa dược <br />chất gây nghiện</th>
+                                    <th class="color-8">Thuốc độc, <br />nguyên liệu độc <br />làm thuốc</th>
+                                    <th class="color-8">Thuốc dược chất <br />thuộc danh mục <br />bị cấm sử dụng</th>
+                                    <th class="color-8">Sinh phẩm</th>
+                                    <th class="color-8">Vaccin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in filterData = (RequiredLicenses | limitTo:SetPagingRequiredLicenses.pageLimit:SetPagingRequiredLicenses.offset)"
+                             data-toggle="tooltip" title="{{item.CustCode}} | {{item.CustName}} | {{item.TaxCode}} | {{item.CGrpCode}}">
+                                    <td>{{item.CustCode}}</td>
+                                    <td>{{item.CustName}}</td>
+                                    <td class="text-center">
+                                        <label ng-if="item.LicensesYESNO == '2'">
+                                            <span class="label label-info"><b>NO CONTROL LICENSE</b></span>
+                                        </label>
+                                        <label ng-if="item.LicensesYESNO == '1'">
+                                            <span class="label label-success"><b>FULL LICENSE</b></span>
+                                        </label>
+                                        <label ng-if="item.LicensesYESNO == '0'">
+                                            <span class="label label-warning"><b>LACK OF LICENSE</b></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label ng-if="item.LicenseGPKD != null  && item.LicenseGPKD != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseGPKD}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseCOETTBYT != null  && item.LicenseCOETTBYT != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseCOETTBYT}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseTaxCode != null &&item.LicenseTaxCode != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseTaxCode}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseKCB != null  && item.LicenseKCB != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseKCB}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseDMKTBotoxXeomin != null && item.LicenseDMKTBotoxXeomin != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseDMKTBotoxXeomin}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseGCNDDKKDD != null && item.LicenseGCNDDKKDD != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseGCNDDKKDD}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseGPP != null && item.LicenseGPP != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseGPP}}</b></span>
+                                        </label>
+                                        <label ng-if="item.LicenseGDP != null  && item.LicenseGDP != ''">
+                                            <span class="label label-danger"><b>{{item.LicenseGDP}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- GPP -->
+                                    <td class="color-4">{{item.GPPFromDate}}</td>
+                                    <td class="color-4">{{item.GPPToDate}}</td>
+                                    <td class="text-center color-4">
+                                        <label ng-if="item.GPPRemainingDays == null && item.GPPFromDate != null">
+                                            <span class="label label-success"><b>∞</b></span>
+                                        </label>
+                                        <label ng-if="item.GPPRemainingDays > 90">
+                                            <span class="label label-success"><b>{{item.GPPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GPPRemainingDays > 0 && item.GPPRemainingDays < 90">
+                                            <span class="label label-warning">
+                                                <b>{{status.commingexpire}}</b>
+                                            </span>&nbsp;
+                                            <span class="label label-warning"><b>{{item.GPPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GPPRemainingDays != null && item.GPPRemainingDays <= 0">
+                                            <span class="label label-danger"><b>{{status.expired}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- GDP -->
+                                    <td class="color-4">
+                                        {{item.GDPFromDate}}
+                                    </td>
+                                    <td class="color-4">
+                                        {{item.GDPToDate}}
+                                    </td>
+                                    <td class="text-center color-4">
+                                        <label ng-if="item.GDPRemainingDays == null && item.GDPFromDate != null">
+                                            <span class="label label-success"><b>∞</b></span>
+                                        </label>
+                                        <label ng-if="item.GDPRemainingDays > 90">
+                                            <span class="label label-success"><b>{{item.GDPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GDPRemainingDays > 0 && item.GDPRemainingDays < 90">
+                                            <span class="label label-warning">
+                                                <b>{{status.commingexpire}}</b>
+                                            </span>&nbsp;
+                                            <span class="label label-warning"><b>{{item.GDPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GDPRemainingDays != null && item.GDPRemainingDays <= 0">
+                                            <span class="label label-danger"><b>{{status.expired}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- GSP -->
+                                    <td class="color-4">
+                                        {{item.GSPFromDate}}
+                                    </td>
+                                    <td class="color-4">
+                                        {{item.GSPToDate}}
+                                    </td>
+                                    <td class="text-center color-4">
+                                        <label ng-if="item.GSPRemainingDays == null && item.GSPFromDate != null">
+                                            <span class="label label-success"><b>∞</b></span>
+                                        </label>
+                                        <label ng-if="item.GSPRemainingDays > 90">
+                                            <span class="label label-success"><b>{{item.GSPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GSPRemainingDays > 0 && item.GSPRemainingDays < 90">
+                                            <span class="label label-warning">
+                                                <b>{{status.commingexpire}}</b>
+                                            </span>&nbsp;
+                                            <span class="label label-warning"><b>{{item.GSPRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GSPRemainingDays != null && item.GSPRemainingDays <= 0">
+                                            <span class="label label-danger"><b>{{status.expired}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- TaxCode -->
+                                    <td class="color-3">
+                                        {{item.TaxCode}}
+                                    </td>
+                                    <!-- GPKD -->
+                                    <td class="text-center color-5">
+                                        <small class="label text-center" ng-class="item.GPKD == true ? 'bg-green' : ''">
+                                            {{item.GPKD == true ? 'X' : ''}}
+                                        </small>
+                                    </td>
+                                    <!-- Ngành nghề kinh doanh có mua bán TTBYT YES/NO -->
+                                    <td class="text-center color-5">
+                                        <small class="label text-center" ng-class="item.NNKDMBTTBYT == true ? 'bg-green' : 'bg-red'">
+                                            {{item.NNKDMBTTBYT == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <!-- Công bố đủ điều kiện mua bán TTBYT (COE)-->
+                                    <td class="color-6 text-center">
+                                        <small class="label" ng-class="item.IsCOETTBYT == true ? 'bg-green' : ''">
+                                            {{item.IsCOETTBYT == true ? 'X' : ''}}
+                                        </small>
+                                    </td>
+                                    <!-- Giấy chứng nhận đủ điều kiện kinh doanh dược -->
+                                    <td class="color-6">{{item.GCNDDKKDDFromDate}}</td>
+                                    <td class="color-6">{{item.GCNDDKKDDToDate}}</td>
+                                    <td class="text-center color-6">
+                                        <label ng-if="item.GCNDDKKDDRemainingDays == null && item.GCNDDKKDDFromDate != null">
+                                            <span class="label label-success"><b>∞</b></span>
+                                        </label>
+                                        <label ng-if="item.GCNDDKKDDRemainingDays > 90">
+                                            <span class="label label-success"><b>{{item.GCNDDKKDDRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GCNDDKKDDRemainingDays > 0 && item.GCNDDKKDDRemainingDays < 90">
+                                            <span class="label label-warning">
+                                                <b>{{status.commingexpire}}</b>
+                                            </span>&nbsp;
+                                            <span class="label label-warning"><b>{{item.GCNDDKKDDRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.GCNDDKKDDRemainingDays != null && item.GCNDDKKDDRemainingDays <= 0">
+                                            <span class="label label-danger"><b>{{status.expired}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- GP hoạt động khám chữa bệnh -->
+                                    <td class="color-4">{{item.KCBFromDate}}</td>
+                                    <td class="color-4">{{item.KCBToDate}}</td>
+                                    <td class="text-center color-4">
+                                        <label ng-if="item.KCBRemainingDays == null && item.KCBFromDate != null">
+                                            <span class="label label-success"><b>∞</b></span>
+                                        </label>
+                                        <label ng-if="item.KCBRemainingDays > 90">
+                                            <span class="label label-success"><b>{{item.KCBRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.KCBRemainingDays > 0 && item.KCBRemainingDays < 90">
+                                            <span class="label label-warning">
+                                                <b>{{status.commingexpire}}</b>
+                                            </span>&nbsp;
+                                            <span class="label label-warning"><b>{{item.KCBRemainingDays}}</b></span>
+                                        </label>
+                                        <label ng-if="item.KCBRemainingDays != null && item.KCBRemainingDays <= 0">
+                                            <span class="label label-danger"><b>{{status.expired}}</b></span>
+                                        </label>
+                                    </td>
+                                    <!-- Danh mục kỹ thuật có tiêm Botox | Xeomin (Botulinum) -->
+                                    <td class="color-6 text-center">
+                                        <small class="label" ng-class="item.DMKTCTBotoxBotulinum == true ? 'bg-green' : ''">
+                                            {{item.DMKTCTBotoxBotulinum == true ? 'X' : ''}}
+                                        </small>
+                                    </td>
+                                    <!-- Phạm vi kinh doanh -->
+                                    <td class="text-center color-7">
+                                        <small class="label text-center" ng-class="item.TDPHCCDCGN == true ? 'bg-green' : 'bg-red'">
+                                            {{item.TDPHCCDCGN == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-7">
+                                        <small class="label text-center" ng-class="item.TDNLDLT == true ? 'bg-green' : 'bg-red'">
+                                            {{item.TDNLDLT == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-7">
+                                        <small class="label text-center" ng-class="item.TDDMCSD == true ? 'bg-green' : 'bg-red'">
+                                            {{item.TDDMCSD == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-7">
+                                        <small class="label text-center" ng-class="item.SinhPham == true ? 'bg-green' : 'bg-red'">
+                                            {{item.SinhPham == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-7">
+                                        <small class="label text-center" ng-class="item.Vaccin == true ? 'bg-green' : 'bg-red'">
+                                            {{item.Vaccin == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <!-- Đủ điều kiện xuất bán -->
+                                    <td class="text-center color-8">
+                                        <small class="label text-center" ng-class="item.DDKXB_TDPHCCDCGN == true ? 'bg-green' : 'bg-red'">
+                                            {{item.DDKXB_TDPHCCDCGN == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-8">
+                                        <small class="label text-center" ng-class="item.DDKXB_TDNLDLT == true ? 'bg-green' : 'bg-red'">
+                                            {{item.DDKXB_TDNLDLT == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-8">
+                                        <small class="label text-center" ng-class="item.DDKXB_TDDMCSD == true ? 'bg-green' : 'bg-red'">
+                                            {{item.DDKXB_TDDMCSD == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-8">
+                                        <small class="label text-center" ng-class="item.DDKXB_SinhPham == true ? 'bg-green' : 'bg-red'">
+                                            {{item.DDKXB_SinhPham == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <td class="text-center color-8">
+                                        <small class="label text-center" ng-class="item.DDKXB_Vaccin == true ? 'bg-green' : 'bg-red'">
+                                            {{item.DDKXB_Vaccin == true ? 'YES' : 'NO'}}
+                                        </small>
+                                    </td>
+                                    <!-- IsManual -->
+                                    <td class="color-3 text-center">
+                                        <small class="label" ng-class="item.IsManual == true ? 'bg-green' : ''">
+                                            {{item.IsManual == true ? 'X' : ''}}
+                                        </small>
+                                    </td>
+                                    <!-- Customer info -->
+                                    <td>{{item.Remark}}</td>
+                                    <td>{{item.Address}}</td>
+                                    <td>{{item.District}}</td>
+                                    <td>{{item.Province}}</td>
+                                    <td>{{item.Region}}</td>
+                                    <td>{{item.Channel}}</td>
+                                    <td>{{item.CGrpCode}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            minViewMode: "months",
+            useCurrent: true,
+        });
+        
+    });
+</script>

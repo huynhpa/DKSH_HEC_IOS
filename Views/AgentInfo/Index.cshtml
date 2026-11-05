@@ -1,0 +1,176 @@
+﻿@model DKSHApplication.DTO.FileDto
+@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    .dateControl {
+    }
+</style>
+<input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userSession.UserName" />
+<input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userSession.UserId" />
+<input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userSession.IsAdmin" />
+<div class="ng-cloak" ng-controller="AgentInfoController">
+
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            User Profile
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">User profile</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+        <div class="row">
+            <div class="col-md-4">
+                <!-- Profile Image -->
+                <div class="box box-primary">
+                    <div class="box-body box-profile">
+                        @if (userSession != null && userSession.ImagePath != null)
+                        {
+                            <img class="profile-user-img img-responsive img-circle"
+                                 style="width: 350px !important; height: 320px !important;"
+                                 ng-src="~/Images/MemberPictures/@userSession.ImagePath" alt="{{ProfileDto.ImagePath}}" />
+                        }
+                        else
+                        {
+                            <img src="~/Images/user_icon.png" alt="user icon" class="profile-user-img img-responsive img-circle"
+                                 style="width: 350px !important; height: 320px !important;" />
+                        }
+                        <h3 class="profile-username text-center">{{ProfileDto.FullName}}</h3>
+                        <p class="text-muted text-center">{{ProfileDto.JobTitle}}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- /.col -->
+            <div class="col-md-8">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+                        <li><a href="#avatar" data-toggle="tab">Avatar</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="active tab-pane" id="settings">
+                            <form class="form-horizontal" name="ProfileForm" ng-submit="UpdateProfile()" method="post" novalidate>
+                                <input type="hidden" value="" />
+                                <div class="form-group">
+                                    <label for="inputName" class="col-sm-2 control-label">Full Name</label>
+                                    <div class="col-sm-10">
+                                        <input type="email" class="form-control" id="FullName" value="@userSession.FullName"
+                                               placeholder="Full Name" maxlength="150" ng-model="ProfileDto.FullName" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputName" class="col-sm-2 control-label">User Name</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" id="UserName" ng-disabled="disabled"
+                                               placeholder="Name" maxlength="100" ng-model="ProfileDto.UserLogin">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label">Email</label>
+                                    <div class="col-sm-10">
+                                        <input type="email" maxlength="150" class="form-control" id="inputEmail"
+                                               placeholder="Email" ng-model="ProfileDto.Email" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label">New Password</label>
+                                    <div class="col-sm-4">
+                                        <input type="password" maxlength="50" class="form-control" id="inputPassword"
+                                               placeholder="Password" ng-model="ProfileDto.NewPassword" />
+                                    </div>
+                                    <label for="inputEmail" class="col-sm-2 control-label">Confirm password</label>
+                                    <div class="col-sm-4">
+                                        <input type="password" class="form-control" id="inputConfirmPassword"
+                                               ng-model="ProfileDto.ConfirmPassword" maxlength="50"
+                                               placeholder="Confirm password" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputJobTitle" class="col-sm-2 control-label">Job Title</label>
+                                    <div class="col-sm-10">
+                                        <input class="form-control" id="inputJobTitle" value="@userSession.JobTitle"
+                                               placeholder="Job Title" ng-model="ProfileDto.JobTitle" />
+                                    </div>
+                                </div>                        
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="submit" class="btn bg-blue-active">Submit</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- AVATAR -->
+                        <div class="tab-pane" id="avatar">
+                            <div class="form-horizontal">
+                                @using (Html.BeginForm("UploadAvatar", "AgentInfo", FormMethod.Post, new { @id = "uploadForm", enctype = "multipart/form-data" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <div class="form-group">
+                                        <label for="inputAvatar" class="col-sm-3 control-label text-red">Upload avatar (Only image file)</label>
+                                        <div class="col-sm-7">
+                                            @Html.TextBoxFor(model => model.files, "",
+                                            new
+                                            {
+                                                @class = "col-sm-10 form-control",
+                                                @id = "fileUpload",
+                                                @type = "file",
+                                                @fileinput = "file",
+                                                @filepreview = "filepreview"
+                                            })
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fa fa-cloud-upload"></i> Upload
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <img ng-src="{{filepreview}}" class="img-responsive" ng-show="filepreview" />
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!String.IsNullOrEmpty(ViewBag.Message)){
+                            <div class="row text-center">
+                                <div class="callout callout-success">
+                                    <h5>@ViewBag.Message</h5>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        <!-- AVATAR -->
+                    </div>
+                </div>
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </section>
+</div>
+<script src="/Scripts/Controller/AgentInfoController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+    })
+</script>
+

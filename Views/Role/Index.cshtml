@@ -1,0 +1,192 @@
+﻿@{
+    ViewBag.Title = "Role";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    .fix-height-30 {
+        height: 30px;
+        vertical-align: middle;
+    }
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    th,td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #tblRole th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #tblRole td {
+        vertical-align: middle;
+    }
+
+
+    .dateControl { } 
+</style>
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<div class="ng-cloak" ng-controller="RoleController">
+<input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+<input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+<input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+<section class="content-header">
+    <h1>Role Management
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">Role Management</li>
+    </ol>
+</section>
+<section class="content">
+    <!-- ROLE -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="col-md-12">
+                <!-- /.col -->
+                <div class="col-md-3">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Role name</label>
+                        <input type="text" class="form-control" id="txtCustCode" ng-model="SearchParam.RoleName" ng-change="SetPaging()" />
+                    </div>
+                </div>                
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-success" ng-click="SearchRole()">
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-right" ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block bg-blue-active"
+                                ng-click="ClearModel()"
+                                data-backdrop="static" data-keyboard="false"
+                                data-toggle="modal" data-target="#mdRole">
+                            New role
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Role List</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="ListRole.length"></simple-pagination>
+                <br />
+                <table id="tblRole" class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr class="bg-blue-gradient">
+                            <th>Action</th>
+                            <th>Application Name</th>
+                            <th>Role Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListRole | filter : {RoleName: SearchParam.RoleName} | limitTo:settings.pageLimit:settings.offset)">
+                            <td class="text-center" width="10%">                                
+                                <span ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                                    <button type="submit" class="btn bg-green-active btn-sm"
+                                            title="Update Role"
+                                            ng-click="GetRoleDetail(item)">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                                    <button type="submit" class="btn btn-pinterest btn-sm"
+                                            title="Delete Role"
+                                            ng-click="DeleteRole(item)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </span>
+                            </td>                            
+                            <td>{{item.ApplicationName}}</td>
+                            <td class="text-bold">{{item.RoleName}}</td>
+                            <td>{{item.Description}}</td>
+                        </tr>                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- MODAL DIALOG -->
+<div id="mdRole" class="modal fade" role="dialog">
+    <form name="RoleForm" ng-submit="Save()" method="post" novalidate>
+        <div class="modal-dialog modal-lg">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-red">Role Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Role Name</label>
+                                        <input type="text" class="form-control" ng-model="RoleModel.RoleName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <input type="text" class="form-control" ng-model="RoleModel.Description" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn bg-blue-active">Submit</button>
+                    <button type="button" class="btn btn-pinterest" data-dismiss="modal">Cancel</button>                
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+<script src="/Scripts/Controller/RoleController.js"></script>

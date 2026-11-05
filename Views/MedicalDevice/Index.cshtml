@@ -1,0 +1,104 @@
+﻿@{
+    ViewBag.Title = "Hospital";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="ng-cloak" ng-controller="MedicalDeviceController">
+    <section class="content-header">
+        <h1>
+            Medical Management
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Medical Management</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-md-12">                    
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-warning"
+                                    data-backdrop="static" data-keyboard="false"
+                                    data-toggle="modal" data-target="#mdMedical">
+                                <i class="fa fa-cloud-upload"></i> Upload medical
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-instagram" ng-click="ExportResult()">
+                                <i class="fa fa-cloud-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>               
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdMedical" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload data</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Medical device</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtVA05"
+                                                    upload-file="VA05File"
+                                                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group" style="margin-top:25px;">
+                                            <button type="button" class="btn btn-info" ng-click="UploadVA05()">
+                                                <i class="fa fa-cloud-upload"></i>&nbsp;Upload data
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group" style="margin-top:25px;">
+                                            <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/MedicalDeviceController.js"></script>
+
+
+
+

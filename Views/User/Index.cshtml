@@ -1,0 +1,430 @@
+﻿@{
+    ViewBag.Title = "User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{ 
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+       
+}
+<style type="text/css">
+    .fix-height-30 {
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    th,td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #tblUser th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #tblUser td {
+        vertical-align: middle;
+    }
+    .dateControl {
+    } 
+</style>
+<input type="hidden" id="txtUserLogin" value="@userSession.UserId"/>
+<input type="hidden" id="userRoleLogin" value="@userSession.RoleId"/>
+<div class="ng-cloak" ng-controller="UserController">
+<section class="content-header">
+    <h1>User Management
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">User Management</li>
+    </ol>
+</section>
+<section class="content">
+    <!-- USER -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <form id="searchUserFrm" method="get" ng-submit="searchUser()">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>User Id</label>
+                            <input type="text" class="form-control" ng-model="UserSearch.UserId" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>User Name</label>
+                            <input type="text" class="form-control" id="txtClient" ng-model="UserSearch.UserName" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Full name</label>
+                            <input type="text" class="form-control" ng-model="UserSearch.Fullname" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Role</label>
+                            <br />
+                            <select class="form-control select2" style="width: 100%;"
+                                    data-placeholder="Select a Role"
+                                    ng-model="UserSearch.RoleId">
+                                @foreach (var item in ViewBag.RoleList)
+                                {
+                                    <option value="@item.RoleId">@item.RoleName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Team</label><br />
+                            <select class="form-control select2" style="width: 100%;"
+                                    data-placeholder="Select a team"
+                                    ng-model="UserSearch.Team">
+                                <option value="MNG">Manager</option>
+                                <option value="Support">Support</option>
+                                <option value="CDI">CDI</option>
+                                <option value="MD">Medical Device</option>
+                                <option value="PM">Pharmacy</option>
+                                <option value="TM">Tele Marketing</option>
+                                <option value="TS">Tele Sale</option>
+                                <option value="OPU">OPU</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" class="form-control" id="txtUser" ng-model="UserSearch.Email" />
+                        </div>
+                    </div>
+                    <div class="col-md-2" style="margin: 22px 0 0 -21px;">
+                        <div class="form-group checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="UserSearch.IsActive" />
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="label label-success"><b>IS ACTIVE</b></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-2" style="margin-top: 22px;">
+                        <div class="form-group checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="UserSearch.IsDelete" />
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="label label-danger"><b>IS DELETE</b></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-1 pull-left">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-block btn-primary btn-sm" id="btnSearch"><strong>Search</strong></button>
+                        </div>
+                    </div>
+                    <div class="col-md-1 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-warning btn-sm" ng-click="resetForm()"><strong>Clear</strong></button>
+                        </div>
+                    </div>
+                    @if (userSession != null && !userSession.RoleId.Equals("USER"))
+                    {
+                        <div class="col-md-1 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm" id="btnAdd"
+                                        data-backdrop="static" data-keyboard="false" ng-click="EmptyUserModel()"
+                                        data-toggle="modal" data-target="#modalUser">
+                                    <strong>New</strong>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </form>
+            <div class="col-md-12">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <h5>
+                            <label>
+                                <span class="label label-danger"><b>{{totalRows}} user(s)</b></span>
+                            </label>
+                        </h5>
+                    </div>
+                </div>
+            </div>                
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">User List</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="ListUser.length"></simple-pagination>
+                <br />
+                <table id="tblUser" class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>User Id</th>
+                            <th>User Name</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Is Active</th>
+                            <th>Job Title</th>
+                            <th>Team</th>
+                            <th>Department</th>
+                            <th>Join date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListUser | filter : { UserId: UserSearch.UserId,
+                                                                                   UserName: UserSearch.UserName, Email: UserSearch.Email} 
+                                                            | limitTo:settings.pageLimit:settings.offset)">
+                            <td class="text-center">
+                                <a class="btn btn-info btn-sm" ng-href="@Url.Action("Index", "PersonalProfile")?Email={{item.Email}}"
+                                   data-toggle="modal" title="View profile">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+                                <span ng-if="userSession.Id == item.UserId || userSession.Role != 'USER'">
+                                    <button type="button" class="btn btn-primary btn-sm" 
+                                            data-toggle="modal" ng-click="getUserDetail(item.Id)" 
+                                            data-target="#modalUser">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="(userSession.Id == item.UserId || userSession.Role != 'USER') && item.IsDelete == false">
+                                    <button type="button" class="btn btn-pinterest btn-sm" 
+                                            data-toggle="modal" ng-click="DelUser(item)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="(userSession.Role != 'USER') && item.IsDelete == false">
+                                    <button type="button" class="btn btn-success btn-sm"
+                                            data-toggle="modal" ng-click="ActivedUser(item)">
+                                        <i class="fa fa-check"></i>
+                                    </button>
+                                </span> 
+                            </td>
+                            <td>{{item.UserId}}</td>
+                            <td>{{item.UserName}}</td>
+                            <td>{{item.Fullname}}</td>
+                            <td>{{item.Email}}</td>
+                            <td class="text-center">
+                                <small class="label text-center" ng-class="item.RoleId != 'USER' ? 'bg-green' : 'bg-yellow'">
+                                    {{item.RoleName | uppercase}}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <small class="label" ng-class="item.IsActive == true ? 'bg-green' : 'bg-yellow'">{{item.IsActive}}</small>
+                            </td>
+                            <td>{{item.JobTitle}}</td>
+                            <td>{{item.Team}}</td>
+                            <td>{{item.Department}}</td>
+                            <td>{{item.JoinDate}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="ListUser.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+</section>
+<div id="modalUser" class="modal fade" role="dialog">
+<form id="UserForm" name="UserForm" ng-submit="Save()" novalidate>
+    <div class="modal-dialog modal-lg">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">User information</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <!-- form start -->
+                    <div class="box-body">
+                        <div class="col-md-12">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>User Id</label>
+                                    <input type="text" class="form-control" ng-model="UserModel.UserId" ng-disabled="isUpdate"/>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>User Name</label>
+                                    <input type="text" class="form-control" ng-model="UserModel.UserName" />
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+                                        <input type="email" class="form-control" ng-model="UserModel.Email" placeholder="Email" />
+                                    </div>
+                                </div>
+                            </div>                          
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Join Date</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right dateControl" data-format="yyyy-mm-dd" ng-model="UserModel.JoinDate">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Full name</label>
+                                    <input type="text" class="form-control" ng-model="UserModel.Fullname" />
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Job Title</label>
+                                    <input type="text" class="form-control" ng-model="UserModel.JobTitle" />
+                                </div>
+                            </div>  
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-3">
+		                        <div class="form-group">
+			                        <label>Team</label><br />
+			                        <select class="form-control select2" style="width:100%"
+					                        data-placeholder="Select a team" 
+					                        ng-model="UserModel.Team">
+                                        <option value="MNG">Manager</option>
+                                        <option value="Support">Support</option>
+                                        <option value="CDI">CDI</option>
+                                        <option value="MD">Medical Device</option>
+                                        <option value="PM">Pharmacy</option>
+                                        <option value="TM">Tele Marketing</option>
+                                        <option value="TS">Tele Sale</option>
+                                        <option value="OPU">OPU</option>
+			                        </select>
+		                        </div>
+	                        </div>
+                            @if (userSession != null && userSession.RoleId.Equals("ADMIN"))
+                            {
+                            <div class="col-md-3">
+		                        <div class="form-group">
+			                        <label>Role</label>
+			                        <br />
+			                        <select class="form-control select2" style="width:100%"
+					                        data-placeholder="Select a role" 
+					                        ng-model="UserModel.RoleId">
+				                        @foreach (var item in ViewBag.RoleList)
+                                        {
+                                            <option value="@item.RoleId">@item.RoleName</option>
+                                        }
+				                        
+			                        </select>
+		                        </div>
+	                        </div>
+                            }
+                            <div class="col-md-4" ng-if="!isUpdate">
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" class="form-control" placeholder="Password" ng-model="UserModel.Pwd" ng-disabled="isUpdate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-3">
+                                <div class="form-group checkbox">
+                                    <label>
+                                        <input type="checkbox" ng-model="UserModel.IsActive" />
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="label label-success"><b>IS ACTIVE</b></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group checkbox">
+                                    <label>
+                                        <input type="checkbox" ng-model="UserModel.IsDelete" />
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="label label-danger"><b>IS DELETE</b></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group checkbox">
+                                    <label>
+                                        <input type="checkbox" ng-model="UserModel.IsUsing" />
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="label label-warning" title="Check if user have receive mail"><b>IS USING</b></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Submit</button>
+                <button type="button" class="btn btn-pinterest" ng-click="Cancel()" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+</div>
+<!-- angular js -->
+<script src="/Scripts/Controller/UserController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+    })
+</script>

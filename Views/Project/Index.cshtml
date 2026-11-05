@@ -1,0 +1,241 @@
+﻿@{
+    ViewBag.Title = "Project";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblProject th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tbl td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<div class="ng-cloak" ng-controller="ProjectController">
+    <section class="content-header">
+        <h1>
+            Project
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li>Campaign Management</li>
+            <li class="active">Project</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchProject()" name="formUploadProject" method="post">
+                    <div class="col-md-12">                        
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="text-red">Project name</label>
+                                <input type="text" class="form-control" ng-model="ProjectDto.ProjectName" id="txtProjectName" />
+                            </div>
+                        </div>
+                        <div class="col-md-3 fix-chk-mg">
+                            <div class="form-group">
+                                <label class="radio-inline text-green">
+                                    <input type="radio" name="optionsRadios" id="optionsRadios1"
+                                           ng-model="ProjectDto.IsActive" ng-value="true" checked />
+                                    <strong>Active</strong>
+                                </label>
+                                <label class="radio-inline text-red">
+                                    <input type="radio" name="optionsRadios" id="optionsRadios2"
+                                           ng-model="ProjectDto.IsActive" ng-value="false" />
+                                    <strong>Inactive</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" ng-show="ShowTextArea == true">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Header</label>
+                                <textarea class="editor" id="txtHeader"
+                                          placeholder="Place something here..."
+                                          style="width:100%;"></textarea>
+                            </div>
+                        </div>                       
+                        <div class="col-md-6">                            
+                            <div class="form-group">
+                                <label>Footer</label>
+                                <textarea class="editor" id="txtFooter"
+                                          placeholder="Place something here..."
+                                          style="width:100%;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">                        
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-sm btn-success">
+                                    <strong>Search</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-sm btn-pinterest" ng-click="Clear()">
+                                    <strong>Reset</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right" ng-show="!isUpdate">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-sm btn-primary" ng-click="NewProject()">
+                                    <strong>New Project</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-sm btn-green-leaf" ng-click="Save()">
+                                    <strong>Save</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListProject.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Project</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblProject" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-sky">
+                                <th>Action</th>
+                                <th>Project</th>
+                                <th>Create by</th>
+                                <th>Create date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListProject | limitTo:settings.pageLimit:settings.offset)">
+                                <td class="text-center">
+                                    <span>
+                                        <button type="button" title="Update" ng-click="GetProjectDetail(item)" class="btn btn-success btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" title="Delete" ng-click="DeleteProject(item)" class="btn btn-pinterest btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td>{{item.ProjectName}}</td>
+                                <td>{{item.CreatedBy}}</td>
+                                <td>{{item.CreatedDate}}</td>
+                                <td class="text-center">
+                                    <span ng-if="item.IsActive == '1'">
+                                        <small class="label label-success">
+                                            <b>Active</b>
+                                        </small>
+                                    </span>
+                                    <span ng-if="item.IsActive == '0'">
+                                        <small class="label label-danger">
+                                            <b>Inactive</b>
+                                        </small>
+                                    </span>
+                                </td> 
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/ProjectController.js"></script>
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+        $('.editor').summernote({
+            height: 200,
+            minHeight: null,
+            maxHeight: null
+        });
+        
+    })
+</script>

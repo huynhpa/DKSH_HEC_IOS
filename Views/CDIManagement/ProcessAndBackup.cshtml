@@ -1,0 +1,176 @@
+﻿@{
+    ViewBag.Title = "Process & Backup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .dateControl {
+    }
+    .margin-top-25 {
+        margin-top: 25px;
+    }
+</style>
+<script src="/Scripts/Controller/CDIController.js"></script>
+<div class="ng-cloak" ng-controller="CdiController">
+    <section class="content-header">
+        <h1>
+            Process &amp; Back Up
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Process &amp; Back Up</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">PROCESS &amp; BACK UP</h3>
+                <div class="box-tools pull-right">
+                    <a href="@Url.Action("Index", "CDIManagement")" class="btn btn-link">Sold to</a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-warning" ng-click="ProcessCustomer()">
+                                Process All Customer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-10 pull-left">
+                        <div class="form-group">
+                            <label class="text-red">
+                                (*) Chạy lại công thức tính toán đủ điều kiện xuất bán một số loại thuốc và tình trạng chứng từ cho tất cả các khách hàng.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- BACK UP DATA REPORT -->
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-primary" ng-click="BackupData()">
+                                Back up data
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-10 pull-left">
+                        <div class="form-group">
+                            <label class="text-red">
+                                (*) Lưu lại dữ liệu tại thời điểm hiện tại (dùng cho Daily Report điều kiện xuất bán một số loại thuốc)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- BACK UP DATA REPORT -->
+                @*<div class="col-md-12 pull-left">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Time line</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl" id="dtTimeline" 
+                                       ng-model="SetupTimelineModel.Timeline"
+                                       data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 margin-top-25">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-success" ng-click="SetupTimeline()">
+                                Save Timeline
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8 pull-left">
+                        <div class="form-group">
+                            <label class="text-red">
+                                (*) Setup auto send mail alarm Customers have Licenses Expired &amp; Coming expire in Mustwin to Supervisor with timeline
+                            </label>
+                        </div>
+                    </div>
+                </div>*@
+            </div>
+        </div>
+        <!-- UPLOAD CUSTOMER NHA THUOC BENH VIEN CONG -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Upload Danh sách Nhà Thuốc Bệnh Viện Công</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>File</label>
+                            <input type="file" class="form-control" id="txtCustomer"
+                                   upload-file="CustomerFile"
+                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group" style="margin-top:25px;">
+                            <button type="button" class="btn btn-info" ng-click="UploadCustomerNTBVC()">
+                                <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Code ship to all customer -->
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <h3 class="box-title">Upload Code Ship To</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>File</label>
+                            <input type="file" class="form-control" id="txtShipTo"
+                                   upload-file="ShipToFile"
+                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group" style="margin-top:25px;">
+                            <button type="button" class="btn btn-info" ng-click="UploadCodeShipTo()">
+                                <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+    });
+</script>

@@ -1,0 +1,1092 @@
+﻿@{
+    ViewBag.Title = "Do Campaign";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblPhoneNumber th, #tblCallingTime th, #tblHistory th, #tblSearchCall th, #tblFocusCampaignHistory th, #tblAbbottNutrition th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblPhoneNumber td, #tblCallingTime td, #tblHistory td, #tblSearchCall td, #tblFocusCampaignHistory td, #tblAbbottNutrition td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 450px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-mg-top {
+        margin-top: 22px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+    .tr-color-blue {
+        background-color: #46C1FB;
+    }
+    .tr-color-pink {
+        background-color: #FDB9E0;
+    }
+    .tr-color-green {
+        background-color: #8EDC45;
+    }
+    .pointer-hand {
+        cursor: pointer;
+    }
+    canvas {
+        max-width:100%;
+        height:auto;
+    }
+    #mycanvas {
+        width: 100%;
+        height: auto;
+        border: 2px solid #F20D54;
+    }
+
+    div.fullscreen {
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+    .mg_bottom {
+        margin-bottom: 8px !important;
+    }
+</style>
+<div class="ng-cloak" ng-controller="DoCampaignController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <input type="hidden" id="txtProjectID" ng-model="OBSurveyParam.ProjectID" value="@userDto.GroupID"/>
+    <input type="hidden" id="hdSurveyVoteID" ng-model="hdSurveyVoteID" value="@ViewBag.SurveyVoteID" />
+    <section class="content-header">
+        <h1>
+            SURVEY CAMPAIGN
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>            
+            <li class="active">Do the campaign</li>
+        </ol>
+    </section>    
+    <section class="content">     
+        <form id="quickcall-form" name="formQuickCall" ng-submit="QuickCall()" novalidate>
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Quick Calling</h3>
+                    <div class="box-tools pull-right">
+                        <a ng-click="RefreshPage()" class="btn btn-xs btn-primary"><i class="fa fa-refresh"></i>&nbsp;Refresh</a>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="alert alert-success" id="success-alert" ng-show="Message.SuccessMessage != ''">
+                                @*<button type="button" class="close" data-dismiss="alert" arial-label="close">&times;</button>*@
+                                <strong style="font-size:13pt;">Success! {{Message.SuccessMessage}}</strong>
+                            </div>
+                            <div class="alert alert-danger" id="danger-alert" ng-show="Message.ErrorMessage != ''">
+                                @*<button type="button" class="close" data-dismiss="alert" arial-label="close">&times;</button>*@
+                                <strong style="font-size:13pt;">Error! {{Message.ErrorMessage}}</strong>
+                            </div>
+                            <div class="alert alert-error" id="info-alert" ng-show="Message.InfoMessage != ''">
+                                @*<button type="button" class="close" data-dismiss="alert" arial-label="close">&times;</button>*@
+                                <strong style="font-size:13pt;">Info! {{Message.InfoMessage}}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Customer code</label>
+                                <input type="text" class="form-control" ng-model="OBSurveyParam.CustCode" id="txtCustomerCode" />
+                            </div>
+                        </div>                        
+                        @*<div class="col-md-5">
+                            <div class="form-group">
+                                <label>Campaign</label>
+                                <select class="form-control" style="width: 100%;"
+                                        data-placeholder="Select a campaign"
+                                        id="ddlCampaigns"                                        
+                                        ng-model="OBSurveyParam.ServiceId">
+                                    <option ng-repeat="item in OutboundSurveyData.CampaignList" value="{{item.ID}}">{{item.ServiceName}}</option>
+                                </select>
+                            </div>
+                        </div>*@
+                        <div class="col-md-2 fix-mg-top">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-sm bg-blue-active">
+                                    Quick Call
+                                </button>
+                            </div>
+                        </div>                        
+                        @*<div class="col-md-2 fix-mg-top">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="OBSurveyParam.CallPlan" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <b data-toggle="tooltip">
+                                        Call Plan <strong>({{OBSurveyParam.CallPlanCount}})</strong>
+                                    </b>
+                                </label>
+                            </div>
+                        </div>*@                                               
+                    </div>
+                </div>
+            </div>
+        </form>
+        <form id="docampaign-form" name="formDoCampaign" novalidate method="post">
+            <!-- CAMPAIGN -->            
+            <div class="row">
+                <!-- Customer information & Licenses status -->
+                <div class="col-md-7">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Customer Information &amp; Licenses status</h3>
+                            <div class="box-tools pull-right">
+                                <a class="btn btn-xs btn-primary" data-target="#mdZaloImage"
+                                   data-toggle="modal" data-keyboard="false" data-backdrop="static"
+                                   ng-show="ZaloDto.ImageCode != null && ZaloDto.ImageCode != ''">
+                                    Zalo Image
+                                </a>
+                                
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding" style="height:210px;">
+                                <table id="tblPhoneNumber" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr class="bg-aqua-active">
+                                            <th>Person Name</th>
+                                            <th>Phone Number</th>
+                                            <th>Make Call</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in filterData = (PhoneNumber)" title="Click on row to make the call"
+                                            ng-click="Call(item)" style="cursor:pointer;">
+                                            <td>{{item.PersonName}}</td>
+                                            <td class="text-info text-bold text-right">{{item.PhoneNumber}}</td>
+                                            <td class="text-center pointer-hand" title="Click to make the call">
+                                                <span>
+                                                    <small class="label label-success">
+                                                        <i class="fa fa-copy"></i>
+                                                    </small>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group has-success">
+                                    <label class="text-warning">CustCode</label>
+                                    <input type="text" class="form-control" ng-model="iMindCustomerInfo.code" id="txtCustCode" />
+                                    <input type="hidden" id="hdAssignID" ng-model="PhoneNumberObj.AssignID"
+                                           value="{{PhoneNumberObj.AssignID}}" />
+                                </div>
+                                
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>VNZ0 Code</label>
+                                    <input type="text" class="form-control" disabled="disabled" ng-model="PhoneNumberObj.VNZ0Code" id="txtVNZ0Code" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Customer Name</label>
+                                    <input type="text" class="form-control" disabled="disabled" ng-model="iMindCustomerInfo.CustName" id="txtCustName" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Contact person</label>
+                                    <input type="text" class="form-control" ng-model="iMindCustomerInfo.PersonName" id="txtContactPerson" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group has-error">
+                                    <label class="text-danger">Phone number</label>
+                                    <input type="tel" class="form-control" ng-model="iMindCustomerInfo.phone_number" id="txtPhoneNumber" />
+                                </div>
+                            </div>
+                            <div class="col-md-2 fix-chk-mg">
+                                <div class="form-group">
+                                    <button type="button" ng-click="AddContactList()" class="btn bg-green-active btn-sm btn-block">
+                                        Add contact
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>SO</label>
+                                    <input type="text" class="form-control" ng-model="CampaignInfoDto.SO" id="txtSO" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" class="form-control" ng-model="iMindCustomerInfo.addr_detail" id="txtAddress" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-10">
+                                    <div class="form-group">
+                                        <label class="text-red">Special note</label>
+                                        <input type="text" class="form-control" ng-model="iMindCustomerInfo.note" id="txtSpecialNote" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2 fix-chk-mg">
+                                    <div class="form-group">
+                                    <button type="button" ng-click="SaveSpecialNote()" class="btn bg-green-active btn-sm btn-block">
+                                        Save note
+                                    </button>
+                                </div>
+                                </div>
+                                
+                            </div>
+                            <!-- BEGIN LICENSE STATUS -->
+                            <div class="col-md-12">
+                                <h5 class="box-title text-green">STATUS LICENSES &amp; LICENSES TYPE MISSING</h5>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label ng-if="CustomerLicenses.LicensesYESNO == '2'">
+                                            <span class="label label-info"><b>NO CONTROL LICENSE</b></span>
+                                        </label>
+                                        <label ng-if="CustomerLicenses.LicensesYESNO == '1'">
+                                            <span class="label label-success"><b>FULL LICENSE</b></span>
+                                        </label>
+                                        <label ng-if="CustomerLicenses.LicensesYESNO == '0'">
+                                            <span class="label label-warning"><b>LACK OF LICENSE</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseGPP != null && CustomerLicenses.LicenseGPP != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseGPP}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseGDP != null && CustomerLicenses.LicenseGDP != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseGDP}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseTaxCode != null && CustomerLicenses.LicenseTaxCode != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseTaxCode}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseGPKD != null && CustomerLicenses.LicenseGPKD != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseGPKD}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseCOETTBYT != null && CustomerLicenses.LicenseCOETTBYT != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseCOETTBYT}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseGCNDDKKDD != null && CustomerLicenses.LicenseGCNDDKKDD != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseGCNDDKKDD}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseKCB != null && CustomerLicenses.LicenseKCB != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseKCB}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12" ng-if="CustomerLicenses.LicenseDMKTBotoxXeomin != null && CustomerLicenses.LicenseDMKTBotoxXeomin != ''">
+                                    <div class="form-group mg_bottom">
+                                        <label class="text-red">{{CustomerLicenses.LicenseDMKTBotoxXeomin}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END LICENSE STATUS -->
+                            <div class="col-md-12" ng-show="FocusCampaignHistoryList.length > 0">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <table id="tblFocusCampaignHistory" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-aqua-active">
+                                                    <th>CampaignName</th>
+                                                    <th>Calldate</th>
+                                                    <th>Customer feedback</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (FocusCampaignHistoryList)">
+                                                    <td>{{item.ServiceName}}</td>
+                                                    <td>{{item.SurveyDate}}</td>
+                                                    <td>{{item.CustomerFeedback}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="form-group has-feedback">
+                                        <label class="text-aqua">Focus remark</label>
+                                        <input type="text" class="form-control text-aqua" id="txtFocusRemark" />
+                                    </div>
+                                </div>
+                            </div>*@
+                            <div class="col-md-12">
+                                <div class="col-md-3 pull-left">
+                                    <div class="form-group">
+                                        <button type="button" ng-click="LimitedCustomer()" class="btn bg-aqua-active btn-sm btn-block">
+                                            Next Assign <i class="fa fa-hand-o-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <ul class="list-inline">
+                                        <li ng-repeat="campaign in AllActiveCampaign" class="list-inline-item" id="tabCampaign_{{campaign.ID}}">
+                                            <input type="checkbox" id="chkFocus_{{campaign.ID}}" />&nbsp;<strong class="text-aqua">{{campaign.ServiceName}}</strong>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <button type="button" ng-click="LoadScript()" class="btn bg-orange-active btn-sm btn-block">
+                                            Load Script
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End customer information -->
+                <!-- Begin history call -->
+                <div class="col-md-5">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Call History</h3>
+                            <div class="box-tools pull-right">
+                                <a class="btn btn-xs btn-primary" ng-click="GetAgentByUserName()">
+                                    Search Call
+                                </a>
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblHistory" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr class="bg-aqua-active">
+                                            <th>#</th>
+                                            <th>Survey Date</th>
+                                            <th>Project name</th>
+                                            <th>Agent</th>
+                                            <th>PhoneNumber</th>
+                                            <th>SO</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in filterData = (OutboundHistory)">
+                                            <td>{{$index+1}}</td>
+                                            <td>{{item.SurveyDate}}</td>
+                                            <td>{{item.ProjectName}}</td>
+                                            <td>{{item.WindowsUser}} - {{item.FullName}}</td>
+                                            <td>{{item.CustomField10}}</td>
+                                            <td>{{item.SO}}</td>
+                                            <td>
+                                                <span ng-if="item.Name == 'Successful'">
+                                                    <label class="text-green">{{item.Name}}</label>
+                                                </span>
+                                                <span ng-if="item.Name == 'Unsuccessful'">
+                                                    <label class="text-red">{{item.Name}}</label>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end call history -->
+                <!-- Recommend product -->
+                @*<div class="col-md-5">
+                    <div class="box box-primary">
+                        <div class="box-header with-border bg-aqua-active">
+                            <h3 class="box-title">&nbsp;Abbott Nutrition</h3>
+                            <div class="pull-left">
+                                <a ng-click="GetDoctorCallplan()" class="btn btn-xs bg-green-active" title="Refresh callplan">
+                                    <i class="fa fa-refresh"></i>
+                                </a>
+                            </div>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse">                                    
+                                        <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblAbbottNutrition" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr class="bg-aqua-active">
+                                            <th>Doctor Code</th>
+                                            <th>Doctor Name</th>
+                                            <th>PhoneNumber</th>
+                                            <th>Department</th>
+                                            <th>CallDate</th>
+                                            <th>Extension</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in filterData = (DoctorCallplanList)">
+                                            <td>{{item.DoctorCode}}</td>
+                                            <td>{{item.DoctorNameEN}}</td>
+                                            <td>{{item.PhoneNumber}}</td>
+                                            <td>{{item.Department}}</td>
+                                            <td>{{item.CallDate}}</td>
+                                            <td>{{item.Ext}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            </div>            
+            <!-- END CAMPAIGN LIST -->
+            <!-- BEGIN QUESTIONS & ANSWERS -->
+            <div class="row">
+                <!-- question & answer -->
+                <div class="col-md-7">
+                    <div class="box box-primary">
+                        <div class="box-header with-border bg-aqua-active">
+                            <h3 class="box-title">Questions &amp; Answers - (Project: {{ProjectDto.ProjectName}})</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <!-- /.box-header -->
+                        <div class="box-body">
+                            <!-- Start alert -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <h5 class="box-title text-red"><font ng-bind-html="ProjectDto.Header | unsafe"></font></h5>
+                                </div>
+                            </div>
+                            <!-- BEGIN LOAD SCRIPT -->
+                            
+                            <div class="col-md-12">
+                                <div class="nav-tabs-custom">
+                                    <ul class="nav nav-tabs">
+                                        <li ng-repeat="camp in OutboundSurveyData.CampaignList" style="border:thin solid #46C1FB; margin:2px"
+                                            ng-click="GetServiceTypeById(camp.ID)" id="tabServiceType_{{camp.ID}}">
+                                            <a href="#Campaign_{{camp.ID}}" data-toggle="tab" aria-expanded="false" class="text-bold">
+                                                {{camp.ServiceName}}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <div class="col-md-12 tab-content">
+                                        <div class="tab-pane" ng-repeat="tabContent in OutboundSurveyData.CampaignScriptResult"
+                                             id="Campaign_{{tabContent.Campaign.ID}}">
+                                            <div class="box box-primary">
+                                                <div class="box-body">
+                                                    <div class="col-md-12" id="SurveyScriptLoading_{{$index}}">
+                                                        <div class="form-group" ng-repeat="item in tabContent.ServiceQuestionList">
+                                                            <label>{{item.QuestionCode}}</label>
+                                                            <font ng-bind-html="item.QuestionText | unsafe"></font>
+                                                            <p ng-repeat="answer in item.AnswerList">                                                                
+                                                                <!-- type check box -->
+                                                                <span ng-if="answer.AnswerTypeCode == '1'">
+                                                                    <input type="checkbox" id="chkAnswer_{{answer.ID}}_{{substr(answer.AnswerCode)}}_{{$index}}" />
+                                                                </span>
+                                                                <!-- type radion button -->
+                                                                <span ng-if="answer.AnswerTypeCode == '2'">
+                                                                    <input type="radio" id="rdAnswerType2_{{answer.ID}}_{{substr(answer.AnswerCode)}}_{{$index}}" name="radionType2" />
+                                                                </span>
+                                                                <!-- type text box -->
+                                                                <span ng-if="answer.AnswerTypeCode == '3'">
+                                                                    <input type="text" id="txtAnswerType3_{{answer.ID}}_{{$index}}" class="form-control" placeholder="{{answer.ContentAnswer}}" />
+                                                                </span>
+                                                                <!-- type radion button list -->
+                                                                <span ng-if="answer.AnswerTypeCode == '4'">
+                                                                    <font ng-repeat="radion in answer.RadionButtonList">
+                                                                        <input type="radio" id="{{radion}}_{{answer.ID}}" name="radionType4" />
+                                                                    </font>
+                                                                </span>
+                                                                <!-- type text box -->
+                                                                <span ng-if="answer.AnswerTypeCode == '5'">
+                                                                    <input type="text" id="txtAnswerType5_{{answer.ID}}_{{$index}}" class="form-control" placeholder="{{answer.ContentAnswer}}" />
+                                                                </span>
+                                                                <!-- Content Answer -->
+                                                                <b class="text-bold" ng-show="answer.AnswerCode != '' && answer.AnswerTypeCode != '3'">({{answer.AnswerCode}})&nbsp;{{answer.ContentAnswer}}</b>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END LOAD SCRIPT -->
+                            <!-- End alert -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <h5 class="box-title text-red"><font ng-bind-html="ProjectDto.Footer | unsafe"></font></h5>
+                                </div>
+                            </div>
+                            <!-- END SCRIPT -->
+                        </div>
+                    </div>
+                </div>
+                <!-- end question & answer -->
+                <!-- Begin call status -->
+                <div class="col-md-5">
+                    <div class="box box-warning">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Call Status</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            @*<div class="col-md-3 fix-chk-mg">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary" ng-click="SaveStatus()">Save Status</button>
+                                </div>
+                            </div>*@
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Start time</label>
+                                    <input type="text" class="form-control" title="{{CampaignInfoDto.StartTime}}"
+                                           ng-model="CampaignInfoDto.StartTime"
+                                           id="txtStartTime" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>End Time</label>
+                                    <input type="text" class="form-control" title="{{CampaignInfoDto.EndTime}}"
+                                           ng-model="CampaignInfoDto.EndTime"
+                                           id="txtEndTime" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Talk time(s)</label>
+                                    <input type="text" class="form-control" ng-model="CampaignInfoDto.TalkTime"
+                                           id="txtTalkTime" disabled="disabled" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Call back date</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control dateControl" ng-model="OBSurveyParam.CallBackDate"
+                                               data-format="dd-mm-yyyy" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 bootstrap-timepicker">
+                                <div class="form-group">
+                                    <label>time</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control timepicker" id="dtCallbackTime" />
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-clock-o"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2 fix-chk-mg">
+                                <div class="form-group">
+                                    <button type="button" ng-click="SaveStatus()"
+                                            title="Save call back date time"
+                                            class="btn bg-green-active btn-sm btn-block">
+                                        <i class="fa fa-save"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblCallingTime" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr class="bg-gray">
+                                            <th>Priority1</th>
+                                            <th>Priority1</th>
+                                            <th>Callback</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in filterData = (CallingTimeList)">
+                                            <td>{{item.Priority1}}</td>
+                                            <td>{{item.Priority2}}</td>
+                                            <td class="text-fuchsia">CallBack</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group has-warning">
+                                    <label class="text-warning">Remark</label>
+                                    <input type="text" class="form-control" placeholder="Place some text here..."
+                                           ng-model="CampaignInfoDto.note" id="txtRemark" />
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="form-group has-error">
+                                    <label>Status</label>
+                                    <select class="form-control" style="width: 100%;"
+                                            id="ddlSurveyStatus"
+                                            ng-model="OBSurveyParam.Status">
+                                        <option ng-repeat="item in OutboundSurveyData.StatusList" value="{{item.CodeID}}">{{item.Name}}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-5 fix-chk-mg">
+                                <div class="form-group">
+                                    <button type="button" ng-click="SaveSurveyByQuestion()" class="btn bg-green-active btn-sm btn-block">
+                                        <i class="fa fa-save"></i> Save Call
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End call status -->
+                <div class="col-md-5">
+                    <div class="box box-primary">
+                        <div class="box-header with-border bg-aqua-active">
+                            <h3 class="box-title">Social Tracking</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Hình ảnh hổ trợ đã liên hệ với khách hàng qua kênh khác <font class="text-aqua">(ZALO, VIBER...)</font> - Click on tab and paste image</label>
+                                    <canvas id="mycanvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END QUESTIONS & ANSWERS -->            
+        </form>
+        <!-- END -->
+        <div id="mdZaloImage" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 80%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-info">Image</h4>
+                    </div>
+                    <form name="ZaloImageForm">
+                        <div class="modal-body">
+                            <div class="box box-widget">                                
+                                <div class="box-body fix-modal-body">
+                                    <div class="col-md-12">
+                                        <ul class="timeline">
+                                            <li class="time-label">
+                                                <span class="bg-green">
+                                                    {{ZaloDto.ServiceName}} | {{ZaloDto.CreateBy}} | {{ZaloDto.CreateDate}}
+                                                </span>
+                                            </li>
+                                            <li>
+                                                <i class="fa fa-camera bg-purple"></i>
+                                                <div class="timeline-item">
+                                                    <h3 class="timeline-header text-blue">{{ZaloDto.CreateBy}} uploaded photos</h3>
+                                                    <div class="timeline-body text-center" ng-if="ZaloDto.ImageCode != null && ZaloDto.ImageCode != ''">
+                                                        <img ng-src="data:image/PNG;base64,{{ZaloDto.ImageSrc}}"
+                                                             alt="{{ZaloDto.ImageName}}" class="margin" />
+                                                    </div>
+                                                    <div class="timeline-body text-center" ng-if="ZaloDto.ImageCode == null || ZaloDto.ImageCode == ''">
+                                                        <img ng-src="~/Images/no-photo-available-paper-sticker.jpg"
+                                                             alt="No Photo Available" class="margin" />
+                                                    </div>
+                                                </div>
+                                            </li>
+
+                                            <li>
+                                                <i class="fa fa-clock-o bg-gray"></i>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">                                    
+                                    <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mdSearchCall" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 90%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" ng-click="Cancel()" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-info">Survey List {{CurrentDate}}</h4>
+                    </div>
+                    <form name="SearchCallForm" method="get">
+                        <div class="modal-body">
+                            <div class="box box-primary">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"><strong class="text-green">{{hrEmployeeDto.FullName}} | {{hrEmployeeDto.WindowsUser}} | {{hrEmployeeDto.AgentNumber}} | {{hrEmployeeDto.EmployeeID}} | {{hrEmployeeDto.contracts}}</strong></h3>
+                                    <div class="box-tools pull-right">
+                                        <label class="text-red">TOTAL CALL: {{ListSearchCall.length}} rows</label>
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>                                        
+                                    </div>
+                                </div>
+                                <div class="box-body fix-modal-body"> 
+                                    <div class="col-md-12">
+                                        <div class="col-md-2 pull-left">
+                                            <div class="form-group">
+                                                <h5>Call un-plan: <font class="text-green">{{CallUnPlan.length}}</font></h5>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 pull-left">
+                                            <div class="form-group">
+                                                <h5>Calls plan on actual: <font class="text-green">{{CallOnPlan.length}}</font></h5>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 pull-left">
+                                            <div class="form-group">
+                                                <h5>Calls plan: <font class="text-red">{{CallPlan.length}}</font></h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label class="text-blue">CustCode</label>
+                                            <input type="text" class="form-control" ng-model="SearchSurveyParam.SurveyCustCode" id="txtSurveyCustCode" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Status</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    data-placeholder="Select status"
+                                                    ng-model="SearchSurveyParam.SurveyStatus">
+                                                <option value="1">Success</option>
+                                                <option value="0">Unsuccess</option>
+                                                <option value="2">Call back</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Campaign</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    data-placeholder="Select a campaign"
+                                                    id="ddlCampaigns"
+                                                    ng-model="SearchSurveyParam.ServiceId">
+                                                <option ng-repeat="item in OutboundSurveyData.CampaignList" value="{{item.ID}}">{{item.ServiceName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Survey date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl" ng-model="SearchSurveyParam.SurveyDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 fix-mg-top">
+                                        <div class="form-group">
+                                            <button type="button" class="btn bg-aqua-active" ng-click="SearchSurveyByAgent()">
+                                                <i class="fa fa-search"></i>&nbsp;Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblSearchCall" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-light-blue-active">
+                                                    <th>#</th>
+                                                    <th>Customer Code</th>
+                                                    <th>Customer Name</th>
+                                                    <th>Phone Number</th>
+                                                    <th>Calling Date</th>
+                                                    <th>Start Time</th>
+                                                    <th>End Time</th>
+                                                    <th>Talk Time (s)</th>
+                                                    <th>Call Back</th>
+                                                    <th>Project</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListSearchCall | filter: { CustomerCode: SearchSurveyParam.SurveyCustCode})"
+                                                    style="cursor: pointer;" ng-click="CheckSurveyItem($index)">
+                                                    <td>
+                                                        <input type="radio" name="optionsRadios" id="optionsRadios_{{$index}}" value="{{item.Id}}">
+                                                    </td>
+                                                    <td>{{item.CustomerCode}}</td>
+                                                    <td>{{item.CustomerName}}</td>
+                                                    <td>{{item.CustomerPhone}}</td>
+                                                    <td>{{item.CallingDate}}</td>
+                                                    <td>{{item.StartTime}}</td>
+                                                    <td>{{item.EndTime}}</td>
+                                                    <td class="text-right">{{item.TalkTime | number}}</td>
+                                                    <td>{{item.CallBackDate}}</td>
+                                                    <td>{{item.ProjectName}}</td>
+                                                    <td>
+                                                        <span ng-if="item.Status == '1'">
+                                                            <small class="label label-success">
+                                                                <b>Success</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.Status == '0'">
+                                                            <small class="label label-danger">
+                                                                <b>Unsuccess</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.Status == '2'">
+                                                            <small class="label label-info">
+                                                                <b>Call back</b>
+                                                            </small>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>                                        
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-pinterest pull-left" ng-click="DeleteSurvey()">
+                                        <i class="fa fa-trash-o"></i>&nbsp;Delete
+                                    </button>                                    
+                                    <button type="button" class="btn btn-green-leaf" ng-click="GetSurveyById()">
+                                        <i class="fa fa-check-square-o"></i>&nbsp;Select
+                                    </button>
+                                    <button type="button" class="btn btn-danger" ng-click="Cancel()" data-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>                        
+                    </form>
+                </div>                
+            </div>
+        </div>
+        <!-- End -->
+        <!-- Effection Call -->
+        <div id="mdCampaignDetail" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 70%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-info">Campaign Detail</h4>
+                    </div>
+                    <form name="EffectionCallForm">
+                        <div class="modal-body">
+                            <div class="box box-widget">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script src="~/Scripts/Controller/DoCampaignController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+$(function () {
+        'use strict'
+        
+
+    /**
+     * This handler retrieves the images from the clipboard as a blob and returns it in a callback.
+     *
+     * param pasteEvent
+     * param callback
+     */
+    function retrieveImageFromClipboardAsBlob(pasteEvent, callback) {
+        if (pasteEvent.clipboardData == false) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        };
+        var items = pasteEvent.clipboardData.items;
+
+        if (items == undefined) {
+            if (typeof (callback) == "function") {
+                callback(undefined);
+            }
+        };
+
+        for (var i = 0; i < items.length; i++) {
+            // Skip content if not image
+            if (items[i].type.indexOf("image") == -1) continue;
+            // Retrieve image on clipboard as blob
+            var blob = items[i].getAsFile();
+
+            if (typeof (callback) == "function") {
+                callback(blob);
+            }
+        }
+    }
+    window.addEventListener("paste", function (e) {
+        // Handle the event
+        retrieveImageFromClipboardAsBlob(e, function (imageBlob) {
+            // If there's an image, display it in the canvas
+            if (imageBlob) {
+                var canvas = document.getElementById("mycanvas");
+                var ctx = canvas.getContext('2d');
+
+                // Create an image to render the blob on the canvas
+                var img = new Image();
+
+                // Once the image loads, render the img on the canvas
+                img.onload = function () {
+                    // Update dimensions of the canvas with the dimensions of the image
+                    canvas.width = this.width;
+                    canvas.height = this.height;
+
+                    // Draw the image
+                    ctx.drawImage(img, 0, 0);
+                };
+
+                // Crossbrowser support for URL
+                var URLObj = window.URL || window.webkitURL;
+
+                // Creates a DOMString containing a URL representing the object given in the parameter
+                // namely the original Blob
+                img.src = URLObj.createObjectURL(imageBlob);
+            }
+        });
+    }, false);
+    $('[data-mask]').inputmask();
+    $('.select2').select2();
+
+    $('.dateControl').datepicker({
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        todayHighlight: true,
+        orientation: 'bottom'
+    });
+    $('.editor').summernote({
+        height: 150,
+        minHeight: null,
+        maxHeight: null
+    });
+    $('.timepicker').timepicker({
+        showInputs: false,
+        minuteStep: 1
+    });
+});
+</script>

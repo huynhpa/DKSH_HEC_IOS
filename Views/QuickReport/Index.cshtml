@@ -1,0 +1,298 @@
+﻿@{
+    ViewBag.Title = "Quick report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .fix-height-30 {
+        height: 30px;
+        vertical-align: middle;
+    }
+    .margin-top-22 {
+        margin-top : 22px;
+    }
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblQuickReport th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblQuickReport td {
+        vertical-align: middle;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+</style>
+<div ng-cloak ng-controller="QuickReportController">
+    <section class="content-header">
+        <h1>
+            Quick Comment Management
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Quick Comment Management</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Ticket No.</label>
+                            <select class="form-control select2" style="width: 100%;" ng-model="SearchParam.RequestId" ng-change="SetPaging()">                                
+                                @if (ViewBag.TicketNoList != null)
+                                {
+                                    foreach (var item in ViewBag.TicketNoList)
+                                    {
+                                    <option value="@item.TicketId">@item.TicketName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Issue No</label>
+                            <select class="form-control select2" style="width: 100%;" ng-model="SearchParam.IssueId" ng-change="SetPaging()">
+                                @if (ViewBag.IssueNoList != null)
+                                {
+                                    foreach (var item in ViewBag.IssueNoList)
+                                    {
+                                    <option value="@item.Id">@item.IssueNo - @item.Title</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control"
+                                   ng-model="SearchParam.Title" ng-change="SetPaging()" />
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2 margin-top-22">
+                        <div class="form-group checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="SearchParam.IsDelete" />
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="label label-danger"><b>IS DELETE</b></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-primary" ng-click="SearchQuickReport()">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-pinterest" ng-click="Clear()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-success" id="btnAdd" ng-click="AddQuickReport()"
+                                    data-backdrop="static" data-keyboard="false"
+                                    data-toggle="modal" data-target="#mdQuickReport">
+                                <span><i class="fa fa-commenting"></i></span>
+                                New
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Quick Comment List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListQuickReport.length"></simple-pagination>
+                    <br />
+                    <table id="tblQuickReport" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Ticket No.</th>
+                                <th>Issue No.</th>
+                                <th>Title</th>                                                                
+                                <th>Create By</th>
+                                <th>Create Date</th>
+                                <th>Update By</th>
+                                <th>Update Date</th>
+                                <th>Is Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListQuickReport | filter : { RequestId: SearchParam.RequestId,
+                                                                                    IssueId: SearchParam.IssueId,
+                                                                                    Title: SearchParam.Title }
+                                                                    | limitTo:settings.pageLimit:settings.offset)">
+                                <td class="text-center">
+                                    <span><button type="button" class="btn btn-primary" data-toggle="modal" ng-click="GetQuickReportDetail(item)" data-target="#mdQuickReport"><i class="fa fa-edit"></i></button></span>
+                                    <span ng-if="item.IsDelete == false"><button type="button" class="btn btn-danger" data-toggle="modal" ng-click="DelQuickReport(item)"><i class="fa fa-trash"></i></button></span>
+                                </td>
+                                <td class="text-bold">{{item.TicketNo}}</td>
+                                <td>{{item.IssueNo}}</td>
+                                <td>{{item.Title | uppercase}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.CreateDate}}</td>
+                                <td>{{item.UpdateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>
+                                <td class="text-center"><small class="label text-center" ng-class="item.IsDelete == true ? 'bg-red' : 'bg-green'">{{item.IsDelete == true ? 'YES' : 'NO'}}</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdQuickReport" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 85%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-red">Quick Comment Information</h4>
+                </div>
+                <form method="post" name="QuickReportForm" ng-submit="Save()">
+                    <div class="modal-body fix-modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group" ng-if="!isUpdate">
+                                            <label class="text-red">Ticket No.</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    ng-model="QuickReportModel.RequestId"
+                                                    ng-change="GetIssueNo(QuickReportModel.RequestId)">
+                                                <option ng-repeat="item in TicketNoList" value="{{item.TicketId}}">{{item.TicketName}}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" ng-if="isUpdate">
+                                            <label class="text-red">Ticket No.</label>
+                                            <input disabled="disabled"
+                                                   type="text" class="form-control"
+                                                   ng-model="QuickReportModel.TicketNo" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group" ng-if="!isUpdate">
+                                            <label>Issue No</label>                                      
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    ng-model="QuickReportModel.IssueId">
+                                                <option ng-repeat="item in IssueNoList" value="{{item.Id}}">{{item.IssueNo}} - {{item.Title}} </option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" ng-if="isUpdate">
+                                            <label>Issue No</label>
+                                            <input type="text" class="form-control" 
+                                                   ng-model="QuickReportModel.IssueNo"
+                                                   disabled="disabled" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label class="text-red">Title</label>
+                                            <input type="text" class="form-control" ng-model="QuickReportModel.Title" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-sm-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Description</label>
+                                            <textarea type="text" class="editor" id="txtDescription" ng-model="QuickReportModel.Descriptions"
+                                                      placeholder="Place description about your request here..."
+                                                      style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-info">Submit</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" ng-click="Cancel()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/Scripts/Controller/QuickReportController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>
+

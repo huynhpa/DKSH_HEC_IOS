@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "Customer Calling Time";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblCallPlan th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tbl td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<div class="ng-cloak" ng-controller="CallingTimeController">
+    <section class="content-header">
+        <h1>
+            Calling Time
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li>Campaign Management</li>
+            <li class="active">Calling Time</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchCallingTime()" name="formCallingTime" method="get">
+                    <div class="col-md-12">                        
+                        <div class="col-md-2">
+                            <div class="form-group has-warning">
+                                <label class="control-label" for="txtCustomerCode">
+                                    CustCode
+                                </label>
+                                <input type="text" class="form-control" ng-model="CallingTimeDto.CustomerCode" id="txtCustomerCode" />
+                            </div>
+                        </div>
+                        <div class="col-md-2 bootstrap-timepicker">
+                            <div class="form-group">
+                                <label>Priority 1 (From)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control timepicker" id="dtFromTime1" />
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 bootstrap-timepicker">
+                            <div class="form-group">
+                                <label>Priority 1 (To)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control timepicker" id="dtToTime1" />
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 bootstrap-timepicker">
+                            <div class="form-group">
+                                <label>Priority 2 (From)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control timepicker" id="dtFromTime2" />
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 bootstrap-timepicker">
+                            <div class="form-group">
+                                <label>Priority 2 (To)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control timepicker" id="dtToTime2" />
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-clock-o"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">                        
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-sm btn-success">
+                                    <strong>Search</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-sm btn-pinterest" ng-click="Clear()">
+                                    <strong>Clear</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" ng-click="SetCallingTime()" 
+                                        class="btn btn-block bg-aqua-active btn-sm">
+                                    <strong>Set Calling Time</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="CallingTimeList.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Calling Time</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblCallPlan" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-sky">
+                                <th>Customer Code</th>
+                                <th>Priority 1</th>
+                                <th>Priority 2</th>
+                                <th>Phone number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (CallingTimeList | limitTo:settings.pageLimit:settings.offset)">                                
+                                <td>{{item.CustomerCode}}</td>
+                                <td>{{item.Priority1}}</td>
+                                <td>{{item.Priority2}}</td>
+                                <td>{{item.PhoneNumber}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/CallingTimeController.js"></script>
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+    })
+</script>

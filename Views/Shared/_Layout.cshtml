@@ -1,0 +1,407 @@
+﻿@model DKSHApplication.DTO.MemberShipDto
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>@ViewBag.Title - OSS</title>
+    <link href="~/Images/phone-icon.png" rel="shortcut icon" type="image/x-icon" />
+    <link href="#" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/bower_components/Ionicons/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/dist/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+            folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="/dist/css/skins/_all-skins.min.css">
+    <!-- Morris chart -->
+    @*<link rel="stylesheet" href="bower_components/morris.js/morris.css">*@
+    <!-- Date Picker -->
+    <link rel="stylesheet" href="/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+    <!-- Daterange picker -->
+    <link rel="stylesheet" href="/bower_components/bootstrap-daterangepicker/daterangepicker.css">
+    @*<link rel="stylesheet" href="/bower_components/datatables.net-bs/css/datatables.css" />
+    <link rel="stylesheet" href="/bower_components/datatables.net-bs/css/datatables.min.css" />*@
+    <link href="/dist/jquery-confirm/jquery-confirm.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/dist/css/checkbox-style.css"/>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    @*@Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")*@
+    <!-- Select2 -->
+    <link rel="stylesheet" href="/bower_components/select2/dist/css/select2.min.css">
+
+    <!-- jQuery 3 -->
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="/bower_components/jquery-ui/jquery-ui.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <!-- daterangepicker -->
+    <script src="/bower_components/moment/min/moment.min.js"></script>
+    <script src="/bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <!-- datepicker -->
+    <script src="/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+    <!-- ANGULAR JS PLUGINS -->
+    <script src="/Scripts/angular.min.js"></script>
+    <script src="/Scripts/angular-mocks.js"></script>
+    <script src="/Scripts/ui-bootstrap-tpls-2.5.0.min.js"></script>
+    <link href="/plugins/angular-simple-paging/angular-simple-pagination.css" rel="stylesheet" />
+    <script src="/plugins/angular-simple-paging/angular-simple-pagination.js"></script>
+    <script src="/plugins/angular-upload-file/angular-upload.js"></script>
+    @*<script src="/plugins/angular-sanitize/angular-sanitize.js"></script>
+    <script src="/plugins/angular-sanitize/angular-sanitize.min.js"></script>*@
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.10/angular-sanitize.js"></script>
+    <style type="text/css">
+        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+            display: none !important;
+        }
+        body{
+            font-family: 'Segoe UI' !important;
+            font-size: 12px !important;
+        }
+    </style>
+    @{
+        var userDto = (DKSHApplication.DTO.MemberShipDto) Session["USER_SESSION"];
+    }
+</head>
+<body class="hold-transition skin-blue sidebar-mini" ng-app="DKSHApp">
+    <div class="wrapper" id="Loading">
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="@Url.Action("Index", "Home")" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini">                    
+                    <img src="/Images/phone-icon.png" width="24" height="24" />
+                </span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg">
+                    <img src="/Images/phone-icon-home.png" width="32" height="32" />
+                </span>
+            </a>
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown user user-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                @if (userDto != null && userDto.ImagePath != null)
+                                {
+                                    <img ng-src="~/Images/MemberPictures/@userDto.ImagePath" alt="@userDto.ImagePath" class="user-image" />
+                                }
+                                else
+                                {
+                                    <img src="/Images/user_icon.png" alt="user icon" class="user-image" />
+                                }
+                                <span class="hidden-xs">
+                                    @if (userDto != null)
+                                    {
+                                        @userDto.FullName
+                                    }
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- User image -->
+                                <li class="user-header">
+                                    @if (userDto != null && userDto.ImagePath != null)
+                                    {
+                                        <img ng-src="~/Images/MemberPictures/@userDto.ImagePath" class="img-circle" alt="@userDto.ImagePath" />
+                                    }
+                                    else
+                                    {
+                                        <img ng-src="~/Images/user_icon.png" alt="user icon" class="img-circle" />
+                                    }
+                                    <p>
+                                        @if (userDto != null)
+                                        {
+                                            @userDto.FullName
+                                        }                                        
+                                    </p>
+                                </li>
+                                
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <a href="@Url.Action("Index", "AgentInfo")" class="btn btn-default btn-flat">Profile</a>
+                                    </div>
+                                    @using (Html.BeginForm("SignOut", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                    <div class="pull-right">
+                                        <button type="submit" class="btn btn-default btn-flat">Sign out</button>
+                                    </div>
+                                    }
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Control Sidebar Toggle Button -->
+                        <li>
+                            <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <!-- Sidebar user panel -->
+                <div class="user-panel">
+                    <div class="pull-left image">
+                        @if (userDto != null && userDto.ImagePath != null)
+                        {
+                            <img ng-src="~/Images/MemberPictures/@userDto.ImagePath" class="img-circle" alt="@userDto.ImagePath">
+                        }
+                        else
+                        {
+                            <img src="/Images/user_icon.png" alt="img-circle" class="offline" />
+                        }
+                    </div>
+                    <div class="pull-left info">
+                        <p>
+                            @if (userDto != null)
+                            {
+                                @userDto.UserName <br />
+                            }
+                        </p>
+                        <a href="#"><i class="fa fa-circle text-success"></i>Online</a>
+                    </div>
+                </div>
+                <!-- search form -->
+                <!-- /.search form -->
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header text-aqua"><strong>OUTBOUND SURVEY</strong></li>
+                    @if (userDto != null && !userDto.EmpLevels.Equals("AGENT")) {
+                    <li>
+                        <a href="@Url.Action("Index", "Wallboard")"><i class="fa fa-television text-green text-bold"></i><strong class="text-green">WALLBOARD</strong></a>
+                    </li>
+                    }
+                    <li>
+                        <a href="@Url.Action("Index", "DoCampaign")"><i class="fa fa-headphones text-orange text-bold"></i><strong class="text-red">SURVEY</strong></a>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-dashboard text-danger"></i><span>Dashboard</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-circle-o text-aqua"></i>Performance</a></li>
+                        </ul>
+                    </li>
+                    <!-- Outbound Survey -->
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-gears text-danger"></i><span>Setting</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li class="treeview">
+                                <a href="@Url.Action("Index", "CampaignManagement")">
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                    <i class="fa fa-hand-o-right text-aqua"></i>Survey Management
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="@Url.Action("Index", "Project")"><i class="fa fa-circle-o text-aqua"></i>Projects</a></li>
+                                    <li><a href="@Url.Action("Index", "Campaign")"><i class="fa fa-circle-o text-aqua"></i>Campaigns</a></li>
+                                    <li><a href="@Url.Action("Index", "Question")"><i class="fa fa-circle-o text-aqua"></i>Questions &amp; Answers</a></li>
+                                    @if (userDto != null && !userDto.EmpLevels.Equals("AGENT"))
+                                    {
+                                        <li><a href="@Url.Action("Index", "CallPlan")"><i class="fa fa-circle-o text-aqua"></i>Call Plan</a></li>
+                                    }
+                                    <li><a href="@Url.Action("Index", "ImportPhoneNumber")"><i class="fa fa-circle-o text-aqua"></i>Add-on plan</a></li>
+                                    <li><a href="@Url.Action("Index", "Assignment")"><i class="fa fa-circle-o text-aqua"></i>Assignment</a></li>
+                                    <li><a href="@Url.Action("Index", "CallingTime")"><i class="fa fa-circle-o text-aqua"></i>Calling Time</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="treeview">
+                                <a href="@Url.Action("Index", "SystemAdmin")">
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                    <i class="fa fa-hand-o-right text-aqua"></i>System Admin
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li>
+                                        <a href="@Url.Action("Index", "Agent")">
+                                            <i class="fa fa-circle-o text-aqua"></i>
+                                            <span>Agents Management</span>
+                                        </a>
+                                    </li>
+                                    @*<li>
+                                        <a href="@Url.Action("Index", "Role")">
+                                            <i class="fa fa-circle-o text-aqua"></i>
+                                            <span>Role Management</span>
+                                        </a>
+                                    </li>*@
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </li>
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-book text-danger"></i><span>Report</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="@Url.Action("Index", "SearchCall")"><i class="fa fa-circle-o text-aqua"></i>Search Call</a></li>
+                            <li><a href="@Url.Action("Index", "Records")"><i class="fa fa-circle-o text-aqua"></i>Records</a></li>
+                        </ul>
+                    </li>
+                    <!-- Tele Marketing -->
+                    @*<li class="treeview">
+            <a href="#">
+                <i class="fa fa-line-chart text-danger"></i><span>Tele Marketing</span>
+                <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                </span>
+            </a>
+            <ul class="treeview-menu">
+                <li>
+
+                </li>
+            </ul>
+        </li>*@
+
+                    <!-- Tele Sale -->
+                    @*<li class="treeview">
+            <a href="#">
+                <i class="fa fa-dollar text-danger"></i><span>Tele Sale</span>
+                <span class="pull-right-container">
+                    <i class="fa fa-angle-left pull-right"></i>
+                </span>
+            </a>
+        </li>*@
+                    <!-- Customer -->
+                    <li>
+                        <a href="@Url.Action("Index", "Customer")"><i class="fa fa-hospital-o text-danger"></i><span>Customer Information</span></a>
+                    </li>
+                    @if (userDto != null && !userDto.EmpLevels.Equals("AGENT")) { 
+                    <li>
+                        <a href="@Url.Action("Index", "ContactiMind")"><i class="fa fa-hospital-o text-danger"></i><span>Contact DataBase</span></a>
+                    </li>
+                    }
+                </ul>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <!-- Content Wrapper. Contains page content -->
+        @RenderSection("featured", required: false)
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <!-- Main content -->
+            @RenderBody()
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+        <footer class="main-footer">
+            <div class="pull-right hidden-xs">
+                <b>Version</b> 1.0.1
+            </div>
+            <strong>Copyright &copy; 2018-2019 <a href="https://dksh.com" target="_blank">DKSH</a>.</strong> All rights reserved.
+       
+        </footer>
+
+        <!-- Control Sidebar -->
+        <aside class="control-sidebar control-sidebar-dark">
+            <!-- Create the tabs -->
+            <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
+                <li><a href="#control-sidebar-home-tab" data-toggle="tab"><i class="fa fa-home"></i></a></li>
+                <li><a href="#control-sidebar-settings-tab" data-toggle="tab"><i class="fa fa-gears"></i></a></li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <!-- Home tab content -->
+                <div class="tab-pane" id="control-sidebar-home-tab">
+                </div>
+                <!-- /.tab-pane -->
+                <!-- Stats tab content -->
+                <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
+                <!-- /.tab-pane -->
+                <!-- Settings tab content -->
+                <div class="tab-pane" id="control-sidebar-settings-tab">
+                </div>
+                <!-- /.tab-pane -->
+            </div>
+        </aside>
+        <!-- /.control-sidebar -->
+        <!-- Add the sidebar's background. This div must be placed immediately after the control sidebar -->
+        <div class="control-sidebar-bg"></div>
+    </div>
+    <!-- ./wrapper -->
+
+    <script type="text/javascript">
+        $.widget.bridge('uibutton', $.ui.button);
+    </script>
+
+    <!-- Bootstrap 3.3.7 -->
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Morris.js charts -->
+    @*<script src="/bower_components/raphael/raphael.min.js"></script>*@
+    @*<script src="bower_components/morris.js/morris.min.js"></script>*@
+    <!-- Select2 -->
+    <script src="/bower_components/select2/dist/js/select2.full.min.js"></script>
+    <!-- Sparkline -->
+    <script src="/bower_components/jquery-sparkline/dist/jquery.sparkline.min.js"></script>
+    <!-- jQuery Knob Chart -->
+    <script src="/bower_components/jquery-knob/dist/jquery.knob.min.js"></script>
+    
+    <!-- Slimscroll -->
+    <script src="/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <!-- FastClick -->
+    @*<script src="/bower_components/fastclick/lib/fastclick.js"></script>*@
+    <!-- AdminLTE App -->
+    <script src="/dist/js/adminlte.min.js"></script>
+    <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+    <script src="/dist/js/pages/dashboard.js"></script>
+    @*<script src="/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>*@
+    <!-- AdminLTE for demo purposes -->
+    <script src="/dist/js/demo.js"></script>
+    <!-- InputMask -->
+    @*<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+    <script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+    <script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>*@
+    <script src="/Scripts/Common/Utils.js"></script>
+    <script src="/dist/jquery-confirm/jquery-confirm.min.js"></script>
+    @*<script src="/Scripts/Common/DKSHDirective.js"></script>*@
+    <!-- LOADING OVERLAY -->
+    <link href="/plugins/Loading/loading-overlay.css" rel="stylesheet" />
+    <script src="/plugins/Loading/loadingoverlay.min.js"></script>
+    <script src="/plugins/Loading/loadingoverlay_progress.min.js"></script>
+    <!-- ANGULAR FILE SAVER -->
+    <script src="/plugins/Angular_FileSaver/Blob.js"></script>
+    <script src="/plugins/Angular_FileSaver/FileSaver.js"></script>
+    <script src="/plugins/Angular_FileSaver/angular-file-saver.bundle.js"></script>    
+    
+</body>
+</html>

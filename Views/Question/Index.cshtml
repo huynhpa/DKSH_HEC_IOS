@@ -1,0 +1,526 @@
+﻿@{
+    ViewBag.Title = "Question Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblQuestion th, #tblAnswer th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblQuestion td, #tblAnswer td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 500px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #F6E4A1;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<!-- Bootstrap time Picker -->
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+<div class="ng-cloak" ng-controller="QuestionController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="CampaignID" ng-model="CampaignID" value="@ViewBag.CampaignID" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <section class="content-header">
+        <h1>
+            Question Management
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Question Management</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <a href="@Url.Action("Index", "Campaign")" class="btn btn-link text-blue">Campaign Management</a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="GetQuestion()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Campaign</label>
+                                <select class="form-control select2" style="width: 100%;" 
+                                        data-placeholder="Select a campaign"
+                                        ng-model="SearchParam.ServiceTypeID">
+                                    <option ng-repeat="item in ListCampaign" value="{{item.ID}}">{{item.ServiceName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    <strong>Search</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Reset()">
+                                    <strong>Clear</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-green-leaf btn-sm"
+                                        data-target="#mdQuestionInfo" data-keyboard="false"
+                                        data-backdrop="static" data-toggle="modal"
+                                        ng-click="ResetModel()">
+                                    <strong>Add Question</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Questions</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListQuestion.length"></simple-pagination>
+                    <br />
+                    <table id="tblQuestion" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-sky">
+                                <th>Action</th>
+                                <th>Code</th>
+                                <th>Question</th>
+                                <th>Campaign</th>                                
+                                <th>Created Date</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListQuestion | limitTo:settings.pageLimit:settings.offset)"
+                                ng-class-odd="tr_odd">
+                                <td class="text-center">                                    
+                                    <span ng-if="UserSession.UserName == item.CreatedBy || (UserSession.IsAdmin != null && UserSession.IsAdmin != '')">
+                                        <button type="button" title="Update" ng-click="GetQuestionInfoUpdate(item.ID)" class="btn btn-success btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" title="View Question" ng-click="ViewQuestionDetail(item.ID)" class="btn btn-info btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </span>
+                                    <span ng-if="UserSession.UserName == item.CreatedBy || (UserSession.IsAdmin != null && UserSession.IsAdmin != '')">
+                                        <button type="button" title="Delete" ng-click="DeleteQuestion(item.ID)" class="btn btn-pinterest btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td>{{item.QuestionCode}}</td>
+                                <td><p ng-bind-html="item.QuestionText | unsafe"></p></td>
+                                <td>{{item.ServiceName}}</td>
+                                <td>{{item.CreatedDate}}</td>
+                                <td>{{item.CreatedBy}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListQuestion.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+        <!-- Question modal -->
+        <div id="mdQuestionInfo" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 85%; margin: 5px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header bg-blue-active">
+                        <button type="button" class="close" ng-click="Cancel()" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-white">Questions &amp; Answers Information</h4>
+                    </div>
+                    <div class="nav-tabs-custom">
+                        <ul class="nav nav-tabs">
+                            <li class="active" id="tabQuestion"><a href="" data-target="#QuestionTab" data-toggle="tab" aria-expanded="false">Question</a></li>
+                            <li class="" id="tabAnswer"><a href="" data-target="#AnswerTab" data-toggle="tab" aria-expanded="false">Answer</a></li>
+                            <li class="" id="tabHelp"><a href="" data-target="#HelpTab" data-toggle="tab" aria-expanded="false"><i class="fa fa-question-circle text-red"></i> Help</a></li>
+                        </ul>
+                        <div class="col-md-12 tab-content">
+                            <!-- QuestionTab -->
+                            <div class="tab-pane active" id="QuestionTab">
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form name="QuestionForm" method="post" ng-submit="SubmitQuestionInfo()">
+                                        <div class="modal-body">
+                                            <div class="box-body fix-modal-body">
+                                                <div class="col-md-12">
+                                                    <div class="col-md-5">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Campaign</label>
+                                                            <select class="form-control select2" style="width: 100%;"
+                                                                    data-placeholder="Select a campaign"
+                                                                    id="ddlCampaign"
+                                                                    ng-disabled="!isNewQuestion || isViewQuestion"
+                                                                    ng-model="QuestionDto.ServiceTypeID">
+                                                                <option ng-repeat="item in ListCampaign" value="{{item.ID}}">{{item.ServiceName}}</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Question Code (max 5 characters)</label>
+                                                            <input type="text" class="form-control" maxlength="5"
+                                                                    ng-model="QuestionDto.QuestionCode" id="txtQuestionCode" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Order index</label>
+                                                            <input type="number" class="form-control" min="0" max="99"
+                                                                    ng-model="QuestionDto.OrderIndex" id="txtOrderIndex" />
+                                                        </div>
+                                                    </div>                                                    
+                                                </div>
+                                                <div class="col-md-12" ng-show="isViewQuestion">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <label class="text-blue">Question Text</label>
+                                                            <hr/>
+                                                            <p style="height: 200px" ng-bind-html="QuestionDto.QuestionText | unsafe"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12" ng-show="isUpdateQuestion || isNewQuestion">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Question Text</label>
+                                                            <textarea class="editor" id="txtQuestionText" ng-model="QuestionDto.QuestionText"
+                                                                      placeholder="Question content"
+                                                                      style="width:100%;"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" ng-show="isUpdateQuestion || isNewQuestion" class="btn btn-green-leaf">
+                                                    <i class="fa fa-save"></i>&nbsp;Submit Question
+                                                </button>
+                                                <button type="button" class="btn btn-pinterest" ng-click="Cancel()" data-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Answer -->
+                            <div class="tab-pane" id="AnswerTab">
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form name="AnswerForm" method="post" ng-submit="SubmitAnswersInfo()">
+                                        <div class="modal-body">
+                                            <div class="box-body fix-modal-body">
+                                                <div class="col-md-12">
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Answer Code</label>
+                                                            <input type="text" class="form-control" maxlength="5"
+                                                                    ng-model="AnswersDto.AnswerCode" id="txtAnswerCode" />
+                                                        </div>
+                                                    </div>
+                                                    @*<div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Answer Group Code</label>
+                                                            <input type="text" class="form-control" maxlength="5"
+                                                                    ng-model="AnswersDto.GroupCode" id="txtGroupCode" />
+                                                        </div>
+                                                    </div>*@
+                                                    <div class="col-md-3">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Answer Type</label>
+                                                            <select class="form-control select2" style="width: 100%;"
+                                                                    data-placeholder=""
+                                                                    ng-model="AnswersDto.AnswerTypeCode">
+                                                                <option ng-repeat="item in AnswerTypeList" value="{{item.Id}}">{{item.AnswerTypeName}}</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label class="text-red">Order</label>
+                                                            <input type="number" class="form-control" maxlength="5"
+                                                                    ng-model="AnswersDto.OrderIndex" id="txtOrderIndex" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Value</label>
+                                                            <input type="text" class="form-control" min="1" max="99"
+                                                                   ng-disabled="AnswersDto.AnswerTypeCode != '1'" ng-model="AnswersDto.AnswerValue" id="txtAnswerValue" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Min</label>
+                                                            <input type="text" class="form-control" min="1" max="99" id="txtMinValue"                                                                
+                                                                   ng-disabled="AnswersDto.AnswerTypeCode != '4'" ng-model="AnswersDto.MinValue" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-group">
+                                                            <label>Max</label>
+                                                            <input type="text" class="form-control" min="1" max="99" id="txtMaxValue"
+                                                                   ng-disabled="AnswersDto.AnswerTypeCode != '3' && AnswersDto.AnswerTypeCode != '4'" 
+                                                                   ng-model="AnswersDto.MaxValue" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label>Answer Content</label>
+                                                            <input type="text" class="form-control" id="txtContentAnswer" 
+                                                                   maxlength="1024" ng-model="AnswersDto.ContentAnswer" />
+                                                        </div>
+                                                    </div>                                                   
+                                                </div>                                                
+                                                <div class="col-md-12 table-responsive no-padding">
+                                                    <table id="tblQuestion" class="table table-bordered table-striped">
+                                                        <thead>
+                                                            <tr class="bg-blue-sky">
+                                                                <th>Action</th>
+                                                                <th>No</th>
+                                                                <th>Code</th>
+                                                                <th>Value</th>
+                                                                <th>Content</th>
+                                                                <th>Group Code</th>
+                                                                <th>Question Type</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr ng-repeat="item in filterData = (ListAnswer)" ng-class-odd="tr_odd">
+                                                                <td class="text-center">
+                                                                    <span ng-hide="isViewQuestion">
+                                                                        <button type="button" title="Update" ng-click="GetAnswerByID(item.ID)" class="btn btn-success btn-xs"
+                                                                                data-toggle="modal">
+                                                                            <i class="fa fa-edit"></i>
+                                                                        </button>
+                                                                    </span>                                                                   
+                                                                    <span ng-hide="isViewQuestion">
+                                                                        <button type="button" title="Delete" ng-click="DeleteAnswer(item.ID)" class="btn btn-pinterest btn-xs"
+                                                                                data-toggle="modal">
+                                                                            <i class="fa fa-trash-o"></i>
+                                                                        </button>
+                                                                    </span>
+                                                                </td>
+                                                                <td>{{item.OrderIndex}}</td>
+                                                                <td>{{item.AnswerCode}}</td>
+                                                                <td>{{item.AnswerValue}}</td>
+                                                                <td>{{item.ContentAnswer}}</td>
+                                                                <td>{{item.GroupCode}}</td>
+                                                                <td>{{item.AnswerTypeName}}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                @*<div class="col-md-12" ng-show="QuestionDto.IsCampaignDetail == true">
+                                                    <button type="button" class="btn bg-red-active" ng-click="ResetCampaignText()">
+                                                        Reset Campaign Description
+                                                    </button>
+                                                    <div class="form-group">
+                                                        <label class="text-red">Campaign Description</label>
+                                                        <textarea class="editor" id="txtCampaignDescription"
+                                                                    placeholder="Place something here..."
+                                                                    style="width:100%;"></textarea>
+                                                    </div>
+                                                </div>*@
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" ng-hide="isViewQuestion" class="btn bg-olive-active pull-left" ng-click="NewAnswer()">
+                                                    <i class="fa fa-plus"></i>&nbsp;New Answer
+                                                </button>
+                                                <button type="submit" ng-hide="isViewQuestion" class="btn btn-success">
+                                                    <i class="fa fa-save"></i>&nbsp;Save Answer
+                                                </button>
+                                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Help -->
+                            <div class="tab-pane" id="HelpTab">
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form name="HelpForm" method="get">
+                                        <div class="modal-body">
+                                            <div class="box-body fix-modal-body">
+                                                <div class="col-md-12">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <ul class="list-group">
+                                                                <li class="list-group-item">
+                                                                    <label class="text-blue">Cam kết dịch vụ (Loại 0 không chọn)</label>
+                                                                </li>
+                                                                <li class="list-group-item">
+                                                                    <label class="text-red">
+                                                                        <input type="checkbox" disabled="disabled">
+                                                                        Thực hiện cuộc gọi nhắn tin tốt (Loại 1 check box)
+                                                                    </label>
+                                                                </li>
+                                                                <li class="list-group-item">
+                                                                    <label class="text-red">
+                                                                        <input type="radio" name="optionsRadios" value="option1" disabled="disabled"/>
+                                                                        Dưới 18 tuổi (Loại 2 radion button)
+                                                                    </label>
+                                                                </li>
+                                                                <li class="list-group-item">
+                                                                    <label class="text-red">
+                                                                        Thủ tục đăng ký (Loại 3 textbox)
+                                                                        <input type="text" disabled="disabled" class="form-control"/>
+                                                                    </label>
+                                                                </li>
+                                                                <li class="list-group-item">
+                                                                    <label class="text-red">                                                                        
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 1
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 2
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 3
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 4
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 5
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 6
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 7
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 8
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 9
+                                                                        <input type="radio" name="optionsRadios" disabled="disabled" /> 10
+                                                                        <i class="fa fa-hand-o-right"></i> Loại 4 (Radion Button List)
+                                                                    </label>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>                                                    
+                                                </div>                                                                                               
+                                            </div>                                            
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End question & answer modal -->
+    </section>
+</div>
+<script src="~/Scripts/Controller/QuestionController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+
+        $('.editor').summernote({
+            height: 200,
+            minHeight: null,
+            maxHeight: null
+        });
+        $(".editor").summernote({
+            onpaste: function (e) {
+                var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
+                e.preventDefault();
+                setTimeout(function () {
+                    document.execCommand('insertText', false, bufferText);
+                    $(this).parent().siblings('.editor').destroy();
+                }, 10);
+            }
+        });
+    })
+</script>
+

@@ -1,0 +1,732 @@
+﻿@{
+    ViewBag.Title = "Pending Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .dateControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tb_PendingOrder th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tb_PendingOrder td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-chk-mg {
+        margin-top: 25px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+
+    .color-col-contract {
+        background-color: #F9D329;
+    }
+
+</style>
+<div class="ng-cloak" ng-controller="PendingOrderController">
+    <section class="content-header">
+        <h1>
+            Pending Order
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pending Order</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchPendingOrder()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Cust Code</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.SoldToPT" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Reject</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        multiple="multiple"
+                                        id="ddlReject01" ng-model="SearchParam.Reject">
+                                    <option ng-repeat="item in RejectList" value="{{item.value}}">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Hospital | Medical</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlHospitalMedical01" ng-model="SearchParam.HospitalMedical">
+                                    <option ng-repeat="item in HospitalMedical" value="{{item.value}}">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Create date: From</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl"
+                                           id="dtCreateDateFrom" ng-model="SearchParam.CreateDateFrom"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>To (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl"
+                                           id="dtCreateDateTo" ng-model="SearchParam.CreateDateTo"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>                 
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Send status</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlSendStatus" ng-model="SearchParam.SendStatus">
+                                    <option value="1">SUCCESS</option>
+                                    <option value="0">FAILED</option>
+                                    <option value="2">NO EMAIL</option>
+                                    <option value="3">NO SCRIPT</option>
+                                    <option value="4">NON NOTIFY PENDING</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="SearchParam.EmailYesNo" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-info">
+                                        <b data-toggle="tooltip" title="Email yes | no">
+                                            Email Yes | No
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">                        
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="ClearSearchParam()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm" 
+                                        data-backdrop="static" data-keyboard="false"
+                                        title="Upload data : Products, Hospital, Receiver"
+                                        data-toggle="modal" data-target="#mdHospitalMedical">
+                                    Upload data
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm" title="Upload VA05"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdPendingOrder">
+                                    <i class="fa fa-cloud-upload"></i> Upload VA05
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        ng-click="GetLastDatePendingOrder()"
+                                        data-toggle="modal" data-target="#mdSendMail">
+                                    Send Mail All
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm" ng-click="ExportResult()">
+                                    <i class="fa fa-file-excel-o"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group pull-left">
+                            <label class="text-red">Lastest pending order date: {{LastestPendingOrder.CreateDate}}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group pull-right">
+                            <simple-pagination current-page="settings.currentPage"
+                                               offset="settings.offset"
+                                               page-limit="settings.pageLimit"
+                                               page-limits="settings.pageLimits"
+                                               on-update="callback()"
+                                               total="PendingOrderList.length"></simple-pagination>
+                        </div>
+                    </div>                    
+                </div>
+            </div>
+
+        </div>
+        <!-- Pending Order List -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Pending Order List</h3>
+                <div class="box-tools pull-right">
+                    <a class="btn btn-link" data-backdrop="static" data-keyboard="false"
+                                        title="Update pending order list"
+                                        data-toggle="modal" data-target="#mdUpdatePendingOrder">
+                        Update pending order
+                    </a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive col-md-12">
+                    <table id="tb_PendingOrder" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Action</th>
+                                <th>Send Status</th>
+                                <th>Send date</th>
+                                <th>Document</th>
+                                <th class="color-col-contract">Sold to pt</th>
+                                <th>Customer name</th>
+                                <th class="color-col-contract">Material</th>                                
+                                <th>Description</th>
+                                <th>Order Qty</th>                                                      
+                                <th>PO Number</th>
+                                <th>Plant</th>                                
+                                <th>Hospital / Medical</th>
+                                <th>Doc Date</th>
+                                <th>Created</th>
+                                <th>RJ</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (PendingOrderList | limitTo:settings.pageLimit:settings.offset)"
+                                data-toggle="tooltip" title="{{item.SoldToPT}} | {{item.CustName}} | {{item.Reject}} | {{item.Email}} | {{item.HospitalMedical}}">
+                                <td>
+                                    <button type="button" class="btn btn-success btn-sm"
+                                            title="Send by template"
+                                            ng-click="SendMailByPendingOrder(item)">
+                                        <i class="fa fa-share-alt"></i>
+                                    </button>
+                                </td>
+                                <td class="text-center">
+                                    <label ng-if="item.SendStatus == '1'">
+                                        <span class="label label-success"><b>SUCCESS</b></span>
+                                    </label>
+                                    <label ng-if="item.SendStatus == '2'">
+                                        <span class="label label-info"><b>NO EMAIL</b></span>
+                                    </label>
+                                    <label ng-if="item.SendStatus == '0'">
+                                        <span class="label label-danger"><b>FAILED</b></span>
+                                    </label>
+                                    <label ng-if="item.SendStatus == '3'">
+                                        <span class="label label-danger"><b>NO SCRIPT</b></span>
+                                    </label>
+                                    <label ng-if="item.SendStatus == '4'">
+                                        <span class="label label-primary"><b>NON NOTIFY PENDING</b></span>
+                                    </label>                                    
+                                </td>
+                                <td>{{item.ShareDate}} {{item.ShareTime}}</td>
+                                <td>{{item.Documents}}</td>
+                                <td class="color-col-contract">{{item.SoldToPT}}</td>
+                                <td>{{item.CustName}}</td>
+                                <td class="color-col-contract">{{item.Material}}</td>                                
+                                <td>{{item.Description}}</td>
+                                <td class="text-right">{{item.OrderQty | number}}</td>                                
+                                <td>{{item.PONumber}}</td>
+                                <td>{{item.Plant}}</td>                                
+                                <td>{{item.HospitalMedical}}</td>
+                                <td>{{item.DocDate}}</td>
+                                <td>{{item.Created}}</td>
+                                <td>{{item.Reject}}</td>
+                                <td class="text-aqua">{{item.Email}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group pull-right">
+                        <simple-pagination current-page="settings.currentPage"
+                                            offset="settings.offset"
+                                            page-limit="settings.pageLimit"
+                                            page-limits="settings.pageLimits"
+                                            on-update="callback()"
+                                            total="PendingOrderList.length"></simple-pagination>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+        <!-- Pending Order List -->
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdPendingOrder" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 20px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload pending orders</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label class="text-red">File *</label>
+                                            <input type="file" class="form-control" id="txtPendingOrder"
+                                                   upload-file="PendingOrderFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info btn-sm" ng-click="UploadPendingOrder()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload &amp; Process
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+    <!-- HOSPITAL & MEDICAL -->
+    <div id="mdHospitalMedical" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload Hospital, Products Medical &amp; Receiver Data</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label class="text-red">Please choose least one sheet to read</label>
+                                            <select class="form-control select2" style="width: 100%;" multiple="multiple"
+                                                    id="ddlHospitalMedical02" ng-model="PendingOrderModel.PendingOrderData">
+                                                <option ng-repeat="item in HospitalMedicalList" value="{{item.value}}">{{item.label}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label class="text-red">File</label>
+                                            <input type="file" class="form-control" id="txtPendingOrderDataTemplate"
+                                                   upload-file="PendingOrderDataFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 fix-chk-mg">
+                                        <button type="button" class="btn btn-info btn-sm" ng-click="Template()">
+                                            <i class="fa fa-cloud-download"></i>&nbsp;Template
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-pink btn-sm pull-left" 
+                                        ng-click="DownloadDataHospitalMedical()">
+                                    <i class="fa fa-cloud-download"></i>&nbsp;Data Hospital Medical
+                                </button>
+                                <button type="button" class="btn btn-info btn-sm" ng-click="UploadPendingOrderDataTemplate()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Send mail -->
+    <div id="mdSendMail" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Send mail pending orders for all</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">Create date *</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl"
+                                                       id="dtCrtDate" ng-model="PendingOrderModel.CreateDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Reject</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    multiple="multiple"
+                                                    id="ddlReject02" ng-model="PendingOrderModel.Reject">
+                                                <option ng-repeat="item in RejectList" value="{{item.value}}">{{item.label}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info btn-sm" ng-click="SendMailPendingOrderForAll()">
+                                    <i class="fa fa-send-o"></i>&nbsp;Send
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- SHARE ONE PENDING -->
+    <div id="mdCustomSend" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 20px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <form name="ShareForm">
+                    <div class="modal-body fix-modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Custom email send</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>SoldToPT</th>
+                                                        <th>CustName</th>
+                                                        <th>Reject</th>
+                                                        <th>HospitalMedical</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-bold text-aqua">{{PendingOrderModel.SoldToPT}}</td>
+                                                        <td class="text-bold text-aqua">{{PendingOrderModel.CustName}}</td>
+                                                        <td class="text-bold text-aqua">{{PendingOrderModel.NetPrice}}</td>
+                                                        <td class="text-bold text-aqua">{{PendingOrderModel.OrderQty}}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">                                    
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">Sender *</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlSenders" ng-model="PendingOrderModel.Sender">
+                                                <option ng-repeat="item in EmailList" value="{{item.value}}">{{item.label}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Password *</label>
+                                            <input type="password" class="form-control" ng-model="PendingOrderModel.Password" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Receiver *</label>
+                                            <input type="text" class="form-control" placeholder="Receiver separate by semicolon (;)" 
+                                                   ng-model="PendingOrderModel.Receiver" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>CC</label>
+                                            <input type="text" class="form-control" placeholder="CC separate by semicolon (;)"
+                                                   ng-model="PendingOrderModel.CC" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Subject *</label>
+                                            <input type="text" class="form-control" placeholder="Place subject here"
+                                                   ng-model="PendingOrderModel.Subject" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Content *</label>
+                                            <textarea type="text" class="editor" id="txtContent" ng-model="PendingOrderModel.Content"
+                                                      placeholder="Place content here..."
+                                                      style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" ng-click="CustomSend()">
+                            <i class="fa fa-send-o"></i> Send
+                        </button>
+                        <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END SHARE -->
+    <div id="mdUpdatePendingOrder" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 20px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Update pending order</h4>
+                </div>
+                <form name="ShareForm" method="post" ng-submit="UpdatePendingOrder()">
+                    <div class="modal-body">
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="text-red">File (xls | xlsx) *</label>
+                                            <input type="file" class="form-control" id="txtFileUpdatePending"
+                                                   upload-file="flUpdatePending"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Create date *</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl"
+                                                       id="dtUpdateDate" ng-model="UpdatePendingOrderDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>                                        
+                                    </div>
+                                </div>                                   
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-green-leaf">
+                            <strong>Submit</strong>
+                        </button>
+                        <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                            <strong>Cancel</strong>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Content -->
+    <div id="mdEmailContent" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%; margin: 50px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Email content</h4>
+                </div>
+                <form name="ShareForm" ng-submit="SendMail()" method="post">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Content *</label>
+                                            <textarea type="text" class="editor" id="txtEmailContent" ng-model="PendingOrderModel.Content"
+                                                      placeholder="Place content here..."
+                                                style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-green-leaf">
+                                    <i class="fa fa-send-o"></i> Send
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="/Scripts/Controller/PendingOrderController.js"></script>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    });
+</script>

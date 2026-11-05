@@ -1,0 +1,187 @@
+﻿@{
+    ViewBag.Title = "Monitor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblMonitorForm th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblMonitorForm td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<div class="ng-cloak" ng-controller="MonitorFormController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <section class="content-header">
+        <h1>
+            Monitor Form
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>            
+            <li class="active">Monitor Form</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="Search()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        
+                    </div>                   
+                    <div class="col-md-12">
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    <strong>Search</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Reset()">
+                                    <strong>Clear</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Monitor Form</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="MonitorFormList.length"></simple-pagination>
+                    <br />
+                    <table id="tblMonitorForm" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-active">
+                                <th>#</th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (MonitorFormList | limitTo:settings.pageLimit:settings.offset)">
+                                
+                            </tr>
+                        </tbody>
+                    </table>
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="MonitorFormList.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/MonitorFormController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    })
+</script>
+
+

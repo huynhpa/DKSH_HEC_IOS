@@ -1,0 +1,1338 @@
+﻿ @{
+    ViewBag.Title = "Sale Projects Manage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<style type="text/css">
+th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+table tr th {
+    text-align: center;
+    color: crimson;
+}
+
+#projectList, #tblSalemanCode th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#projectList, #tblSalemanCode td {
+    vertical-align: middle;
+}
+
+.color-col {
+    background-color: #C2EEFA;
+}
+
+.fix-modal-body {
+    overflow-y: scroll;
+    max-height: 500px;
+}
+.dateControl { }
+.timepicker { }
+.fix-chk-mg {
+    margin-top: 22px;
+}
+.margin-top-25 {
+    margin-top: 25px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    color: #dd4b39;
+}
+.vmiddle {
+    vertical-align: middle !important;
+}
+.tr_odd {
+    background-color: #BDF4FE;
+}
+.btn-style-01 {
+    background-color: #F9780C;
+}
+</style>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+        })
+    })
+</script>
+<div ng-cloak ng-controller="MarketingProjectController">
+<input type="hidden" value="@userSession.Team" id="txtTeam"/>
+<input type="hidden" value="@userSession.UserId" id="txtUserId" />
+<section class="content-header">
+    <h1>
+        Tele Marketing
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">Tele Marketing</li>
+    </ol>
+</section>
+<section class="content">
+    <!-- SELECT2 EXAMPLE -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <form name="SearchForm" method="get" ng-submit="Search()">
+            <div class="col-md-12">
+                <!-- /.col -->
+                <div class="col-md-3">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Project name</label>
+                        <select class="form-control select2" style="width: 100%;" id="txtProjectName"
+                                ng-model="SearchProject.ProjectName">                            
+                            <option ng-repeat="item in ProjectNameList" value="{{item.Id}}">{{item.ProjectName}}</option>                                                        
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Campaign name</label>
+                        <input type="text" class="form-control" ng-model="SearchProject.CampaignName" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Valid From</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                   ng-model="SearchProject.ValidFrom"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Valid To</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                   ng-model="SearchProject.ValidTo"/>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.col -->
+            </div>
+
+            <!-- /.row -->
+            <div class="col-md-12">
+                <div class="col-sm-2 pull-left">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-sm btn-block btn-primary" id="btnSearch">Search</button>
+                    </div>
+                </div>
+                <div class="col-sm-2 pull-left" ng-if="UserSession.Team == 'TM' || UserSession.UserId == 'huynhpa'">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-info btn-sm" id="btnProcess"
+                                data-backdrop="static" data-keyboard="false" ng-click="SelectProject()"
+                                data-toggle="modal">
+                            <i class="fa fa-cogs"></i> Process</button>
+                    </div>
+                </div>
+                <div class="col-sm-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-pinterest btn-sm" id="btnClear" ng-click="ResetSearch()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="col-sm-2 pull-right" ng-if="UserSession.Team == 'TM' || UserSession.UserId == 'huynhpa'">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-success btn-sm" id="btnNewProject" ng-click="GetDataGeneral(null)"
+                                data-backdrop="static" data-keyboard="false"
+                                data-toggle="modal" data-target="#mdNewProject">
+                            New Project
+                        </button>
+                    </div>
+                </div>
+                <div class="col-sm-2 pull-right" ng-if="UserSession.Team == 'TM' || UserSession.UserId == 'huynhpa'">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-warning btn-sm" id="btnTemplate" ng-click="DownloadTemplate()">
+                            <i class="fa fa-cloud-download"></i> Template
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-right">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-primary btn-sm" id="btnOverView" 
+                                data-backdrop="static" data-keyboard="false"
+                                data-toggle="modal" data-target="#mdOverView" ng-click="ProjectOverView()">
+                            <i class="fa fa-book"></i> Over View
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Marketing Project List</h3>
+            <div class="box-tools pull-right">
+                @*<a href="#" data-backdrop="static" data-keyboard="false"
+                   data-toggle="modal" data-target="#mdUpdateDataPick"
+                   class="btn btn-link">Update data pick</a>*@
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>                
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive col-md-12">
+                <simple-pagination current-page="settings.currentPage"
+                                   offset="settings.offset"
+                                   page-limit="settings.pageLimit"
+                                   page-limits="settings.pageLimits"
+                                   on-update="callback()"
+                                   total="ProjectList.length"></simple-pagination>
+                <br />
+                <table id="projectList" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th class="text-center vmiddle" width="10" ng-show="UserSession.Team == 'TM' || UserSession.UserId == 'huynhpa'">
+                                <input type="checkbox" ng-click="CheckAllProject()" id="allProjects" ng-model="AllProjectChecked" />
+                            </th>
+                            <th>Action</th>
+                            <th>Picked rows</th>
+                            <th>Last date process</th>
+                            <th>Last create date</th>
+                            <th>Project number</th>
+                            <th>Project Status</th>
+                            <th>Project name</th>
+                            <th>Project leader</th>
+                            <th>Campaign type</th>
+                            <th>Campaign name</th>
+                            <th>Valid from</th>
+                            <th>Valid to</th>
+                            <th>Min target</th>
+                            <th>Max target</th>
+                            <th>Outlet quantity</th>
+                            <th>Outlet amount</th>
+                            <th>Customers</th>
+                            <th>Channels</th>
+                            <th>In/Ex-Cluded Channels</th>
+                            <th>Region</th>
+                            <th>District</th>
+                            <th>Create by</th>
+                            <th>Create date</th>
+                            <th>Update By</th>
+                            <th>Update date</th>                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ProjectList | filter : { }
+                                                                | limitTo:settings.pageLimit:settings.offset)"
+                            title="{{item.ProjectName}}, from {{item.ValidFrom}} to {{item.ValidTo}}">
+                            <td class="text-center vmiddle" ng-if="UserSession.Team == 'TM' || UserSession.UserId == 'huynhpa'">
+                                <input type="checkbox" id="project_{{$index}}" />
+                            </td>
+                            <td class="text-center">
+                                <span ng-if="item.MarketingDataRawCount > 0">
+                                    <button type="button" title="View" class="btn btn-info btn-sm" ng-click="GetMarketingProjectByProjectNumber(item)"
+                                            data-toggle="modal" data-target="#mdViewProjectDataPick">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="item.MarketingDataRawCount > 0">
+                                    <button type="button" class="btn btn-warning btn-sm" ng-click="ExportDataPick(item)" title="Download data pick">
+                                        <i class="fa fa-cloud-download"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="'TM' == UserSession.Team || UserSession.UserId == 'huynhpa'">
+                                    <button type="button" title="Project definition" class="btn btn-success btn-sm" ng-click="ViewProjectDefinition(item)"
+                                            data-toggle="modal" data-target="#mdNewProject"
+                                            data-backdrop="static" data-keyboard="false">
+                                        <i class="fa fa-tags"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="'TM' == UserSession.Team || UserSession.UserId == 'huynhpa'">
+                                    <button type="button" title="Update" class="btn btn-primary btn-sm" ng-click="UpdateProject(item)" 
+                                            data-toggle="modal" data-target="#mdNewProject"
+                                            data-backdrop="static" data-keyboard="false">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="('TM' == UserSession.Team || UserSession.UserId == 'huynhpa') && item.MarketingDataRawCount > 0">
+                                    <button type="button" title="Delete data picked" class="btn btn-pinterest btn-sm" ng-click="Del(item)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </span>                                
+                            </td>
+                            <td>{{item.MarketingDataRawCount}}</td>
+                            <td>{{item.LastDateProcess}}</td>
+                            <td>{{item.LastCreateDate}}</td>
+                            <td class="text-bold">{{item.ProjectNumber}}</td>
+                            <td class="text-center">
+                                <small class="label label-info text-center" ng-if="item.ProjectStatus == 'WAITING'">
+                                    {{item.ProjectStatus}}
+                                </small>
+                                <small class="label label-success text-center" ng-if="item.ProjectStatus == 'INPROGRESS'">
+                                    {{item.ProjectStatus}}
+                                </small>
+                                <small class="label label-default text-center" ng-if="item.ProjectStatus == 'CLOSED'">
+                                    {{item.ProjectStatus}}
+                                </small>
+                            </td>
+                            <td>{{item.ProjectName | uppercase}}</td>
+                            <td>{{item.ProjectLeader}}</td>
+                            <td>{{item.CampaignType}}</td>
+                            <td>{{item.CampaignName}}</td>
+                            <td>{{item.ValidFrom}}</td>
+                            <td>{{item.ValidTo}}</td>
+                            <td class="text-right">{{item.MinTarget | number}}</td>
+                            <td class="text-right">{{item.MaxTarget | number}}</td>      
+                            <td class="text-right">{{item.MinQuantity | number}}</td>
+                            <td class="text-right">{{item.MinAmount | number}}</td>
+                            <td>{{item.InExCludedCust}}</td>
+                            <td>{{item.Channel}}</td>
+                            <td>{{item.InExCludedChannel}}</td>
+                            <td>{{item.InExCludedRegion}}</td>
+                            <td>{{item.InExCludedDistrict}}</td>
+                            <td>{{item.CreateBy}}</td>
+                            <td>{{item.CreateDate}}</td>
+                            <td>{{item.UpdateBy}}</td>
+                            <td>{{item.UpdateDate}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <simple-pagination current-page="settings.currentPage"
+                                   offset="settings.offset"
+                                   page-limit="settings.pageLimit"
+                                   page-limits="settings.pageLimits"
+                                   on-update="callback()"
+                                   total="ProjectList.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- MODAL DIALOG -->
+<div id="mdNewProject" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 85%; margin: 40px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" ng-click="Cancel()" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Marketing Project Information</h4>
+            </div>
+            <form method="post" name="ProjectForm" ng-submit="Save()">
+                <div class="modal-body fix-modal-body">
+                    <!-- GENERAL -->
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">General</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Project Number</label>
+                                        <input type="text" class="form-control" disabled="disabled"
+                                               ng-model="ProjectModel.ProjectNumber" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="text-red">Project name *</label>
+                                        <input type="text" class="form-control" maxlength="50"
+                                                ng-model="ProjectModel.ProjectName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Project Leader *</label>
+                                        <input type="text" class="form-control"
+                                                ng-model="ProjectModel.ProjectLeader" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Campaign Type *</label>                                        
+                                        <select class="form-control select2" style="width: 100%;"
+                                                id="ddlCampaignType" ng-model="ProjectModel.CampaignType">                                            
+                                            <option ng-repeat="item in CampaignTypeList" value="{{item.value}}">{{item.label}}</option>
+                                        </select>                               
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Valid from</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" id="dtFromDate"                                                   
+                                                   data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Valid to</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" id="dtToDate"                                                   
+                                                   data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Min Target *</label>
+                                        <input type="number" class="form-control" id="txtMinAmount" ng-if="!isView"
+                                               ng-model="ProjectModel.MinTarget" min="0" />
+                                        <input type="text" ng-if="isView" class="form-control text-right" value="{{ProjectModel.MinTarget | number}}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Max Target *</label>
+                                        <input type="number" class="form-control" id="txtMaxAmount" ng-if="!isView"
+                                               ng-model="ProjectModel.MaxTarget" min="0" />
+                                        <input type="text" ng-if="isView" class="form-control text-right" value="{{ProjectModel.MaxTarget | number}}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Outlet Quantity</label>
+                                        <input type="number" class="form-control" id="txtMinQuantity" ng-if="!isView"
+                                               ng-model="ProjectModel.MinQuantity" min="0" />
+                                        <input type="text" ng-if="isView" class="form-control text-right" value="{{ProjectModel.MinQuantity | number}}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Outlet Amount</label>
+                                        <input type="number" class="form-control" id="txtMinAmount" ng-if="!isView"
+                                               ng-model="ProjectModel.MinAmount" min="0" />
+                                        <input type="text" ng-if="isView" class="form-control text-right" value="{{ProjectModel.MinAmount | number}}" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="text-red">Follow Target *</label>
+                                        <select class="form-control select2" style="width: 100%;"
+                                                ng-if="!isView"
+                                                id="ddlPONumber" ng-model="ProjectModel.TargetFollow">
+                                            <option value="QUANTITY">Quantity</option>
+                                            <option value="AMOUNT">Amount</option>
+                                        </select>
+                                        <input type="text" ng-if="isView" ng-model="ProjectModel.TargetFollow" class="form-control"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Project Status</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlPrjStatus" ng-model="ProjectModel.ProjectStatus">
+                                            <option ng-repeat="item in ProjectStatusList" value="{{item.value}}">{{item.label}}</option>
+                                        </select>
+                                        <input type="text" ng-if="isView" ng-model="ProjectModel.ProjectStatus" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>PO Number</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlPONumber" ng-model="ProjectModel.PONumber">
+                                            <option value="ALL">All</option>
+                                            <option value="OBTELE">OB & TELE</option>
+                                        </select>
+                                        <input type="text" ng-if="isView" ng-model="ProjectModel.PONumber" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" checked="checked" ng-model="ProjectModel.Status" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>IS ACTIVE</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" checked="checked" ng-model="ProjectModel.IsFOC" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>IS FOC</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <!-- GENERAL -->
+                    <!-- Criterias -->
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Criterias</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool btn-sm" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-9">
+                                    <div class="form-group">
+                                        <label>Province</label>
+                                        <input class="form-control" placeholder="Please input provinces separate by commas (,)" id="txtProvince" ng-model="ProjectModel.Province" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Remark Province</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlInExCludedProvince" ng-model="ProjectModel.InExCludedProvince">
+                                            <option ng-repeat="item in InExCludedList" value="{{item.id}}">{{item.value}}</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.InExCludedProvince" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label>Region</label>                                                                                
+                                        <input type="text" class="form-control" id="txtRegion" ng-model="ProjectModel.Region" />                                    
+                                    </div>
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group" ng-if="!isView">
+                                        <button type="button" class="btn btn-primary btn-sm" ng-click="CheckRegion()"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdRegion">
+                                            <i class="fa fa-check-square-o"></i> Select region
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Remark Region</label>
+                                        <select class="form-control select2" ng-if="!isView" style="width: 100%;"
+                                                id="ddlInExRegion" ng-model="ProjectModel.InExCludedRegion">
+                                            <option ng-repeat="item in InExCludedList" value="{{item.id}}">{{item.value}}</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.InExCludedRegion" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-9">
+                                    <div class="form-group">
+                                        <label>District</label>
+                                        <input class="form-control" placeholder="Please input district separate by comma (,)"
+                                               ng-model="ProjectModel.District"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Remark Dist</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlInExRegion" ng-model="ProjectModel.InExCludedDistrict">
+                                            <option ng-repeat="item in InExCludedList" value="{{item.id}}">{{item.value}}</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.InExCludedDistrict" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label class="text-red">Channel *</label>
+                                        <input class="form-control" id="txtChannel" ng-model="ProjectModel.Channel" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group" ng-show="!isView">
+                                        <button type="button" class="btn btn-primary btn-sm" ng-click="CheckChannel()"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdChannel">
+                                            <i class="fa fa-check-square-o"></i> Select channel
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="text-red">Remark Channel *</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlInExChannel" ng-model="ProjectModel.InExCludedChannel">
+                                            <option ng-repeat="item in InExCludedList" value="{{item.value}}">{{item.value}}</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.InExCludedChannel" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label class="text-red">Product *</label>
+                                        <input type="file" class="form-control" id="txtProduct"
+                                               upload-file="ProjectModel.ProductList"
+                                               accept="text/csv" />
+                                    </div>                                    
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group">
+                                        <button type="button" ng-if="!isView" ng-click="UploadProduct()" class="btn btn-danger btn-sm" id="btnUploadProduct">
+                                            <i class="fa fa-cloud-upload"></i> Upload product
+                                        </button>
+                                        <a href="#" ng-if="isView" ng-click="DownloadProductFile()" class="btn btn-link">
+                                            Download Product File
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label class="text-red">Resource *</label>
+                                        <input type="file" class="form-control" id="txtResources"
+                                               upload-file="ProjectModel.ResourceSale"
+                                               accept="text/csv" />
+                                    </div>                                    
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group">
+                                        <button type="button" ng-click="UploadSaleman()"
+                                                class="btn btn-block btn-primary btn-sm"
+                                                ng-show="!isView"
+                                                id="btnUploadSaleman">
+                                            <i class="fa fa-cloud-upload"></i> Upload resources
+                                        </button>
+                                        <a href="#" ng-if="isView" ng-click="DownloadResourceFile()" class="btn btn-link">
+                                            Download Resources File
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="text-red">Is selected resource *</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlInExRegion" ng-model="ProjectModel.IsSelectedResource">
+                                            <option value="ALL">All Resource</option>
+                                            <option value="SELECTED">Seleted Resource</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.IsSelectedResource" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-7">
+                                    <div class="form-group">
+                                        <label>Customers</label>
+                                        <input type="file" class="form-control" id="txtCustomers"
+                                                upload-file="ProjectModel.Customers"
+                                                accept="text/csv"/>
+                                    </div>                                    
+                                </div>
+                                <div class="col-md-2 margin-top-25">
+                                    <div class="form-group">
+                                        <button type="button" ng-click="UploadCustomer()" ng-if="!isView"
+                                                class="btn btn-block btn-info btn-sm" id="btnUploadCustomer">
+                                            <i class="fa fa-cloud-upload"></i> Upload customer
+                                        </button>
+                                        <a href="#" ng-if="isView" ng-click="DownloadCustomerFile()" class="btn btn-link">
+                                            Download Customer File
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Remark Customers</label>
+                                        <select class="form-control select2" style="width: 100%;" ng-if="!isView"
+                                                id="ddlCustomer" ng-model="ProjectModel.InExCludedCust">
+                                            <option ng-repeat="item in InExCludedCustomerList" value="{{item.id}}">{{item.value}}</option>
+                                        </select>
+                                        <input type="text" class="form-control" ng-model="ProjectModel.InExCludedCust" ng-if="isView" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea type="text" class="editor" id="txtDescription"
+                                              ng-model="ProjectModel.ProjectDescription"
+                                              style="width:100%;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Criterias -->
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success" ng-show="!isView"><b>Submit</b></button>
+                    <button type="button" class="btn btn-pinterest" data-dismiss="modal" ng-click="Cancel()">
+                        <b ng-show="!isView">Cancel</b>
+                        <b ng-show="isView">Close</b>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- END MODAL DIALOG -->
+<!-- MODEL RESOURCE -->
+<div id="mdResource" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Select resource</h4>
+            </div>
+            <form name="ResourceForm">
+                <div class="modal-body fix-modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool btn-sm" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Sale man code</label>
+                                        <input class="form-control"
+                                               ng-model="SalemanModel.SalemanCode" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Full name</label>
+                                        <input class="form-control"
+                                               ng-model="SalemanModel.FullName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Team</label>
+                                        <select class="form-control select2" style="width: 100%;" multiple="multiple"
+                                                ng-model="SalemanModel.Team">
+                                            <option ng-repeat="item in TeamList" value="{{item}}">{{item}}</option>
+                                        </select>                                        
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group" style="margin-top:25px;">                                        
+                                        <button type="button" class="btn btn-primary btn-sm" ng-click="GetSalemanCode()">Search</button>
+                                        <button type="button" class="btn btn-pinterest btn-sm" ng-click="Clear()">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <h5>
+                                            <label>
+                                                <span class="label label-info"><b>{{totalSaleman}}</b></span>&nbsp;&nbsp;record(s)
+                                            </label>
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Saleman code list</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">                                
+                                <table id="tblSalemanCode" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" width="10">                                                
+                                                <input type="checkbox" ng-click="CheckAll()" id="allSalemanCode" ng-model="CheckAllSaleManCode" />
+                                            </th>
+                                            <th>Saleman Code</th>
+                                            <th>First name</th>
+                                            <th>Last name</th>
+                                            <th>Full name</th>
+                                            <th>Note</th>
+                                            <th>Team</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in SalemanCodeList">
+                                            <td class="text-center vmiddle">                                                
+                                                <input type="checkbox" id="saleman_{{$index}}"/>
+                                            </td>
+                                            <td>{{item.SalemanCode}}</td>
+                                            <td>{{item.FirstName}}</td>
+                                            <td>{{item.LastName}}</td>
+                                            <td>{{item.FullName}}</td>
+                                            <td>{{item.Note}}</td>
+                                            <td>{{item.Team}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-sm" ng-click="SelectSalemanCode()">OK</button>
+                    <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- MODEL RESOURCE -->
+<!-- MODEL PROCESS -->
+<div id="mdProcess" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Process</h4>
+            </div>
+            <form name="ResourceForm">
+                <div class="modal-body fix-modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Upload data inhouse</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label>Upload file data raw</label>
+                                        <input type="file" class="form-control" id="txtFileDataRaw"
+                                               upload-file="FileDataRaw"
+                                               accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />                                        
+                                    </div>
+                                </div>                                
+                                <div class="col-md-3">
+                                    <div class="form-group" style="margin-top:25px;">
+                                        <button type="button" class="btn btn-instagram btn-sm" ng-click="UploadDataRaw()">
+                                            <i class="fa fa-cloud-upload"></i>&nbsp;Upload</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group" style="margin-top:25px;">
+                                        <button type="button" class="btn btn-instagram btn-sm" ng-click="UpdateDataPick()">
+                                            <i class="fa fa-cloud-upload"></i>&nbsp;Update data pick
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+                    </div>
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Projects</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblSalemanCode" class="table table-bordered">
+                                    <thead>
+                                        <tr>                                            
+                                            <th>Project Number</th>
+                                            <th>Project Name</th>
+                                            <th>Campaign name</th>
+                                            <th>Valid from</th>
+                                            <th>Valid to</th>
+                                            <th>Min target</th>
+                                            <th>Max target</th>
+                                            <th>Min quantity</th>
+                                            <th>Max quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in ProjectSelected">
+                                            <td>{{item.ProjectNumber}}</td>
+                                            <td>{{item.ProjectName | uppercase}}</td>
+                                            <td>{{item.CampaignName}}</td>
+                                            <td>{{item.ValidFrom}}</td>
+                                            <td>{{item.ValidTo}}</td>
+                                            <td>{{item.MinTarget | number}}</td>
+                                            <td>{{item.MaxTarget | number}}</td>
+                                            <td>{{item.MinQuantity | number}}</td>
+                                            <td>{{item.MaxQuantity | number}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success btn-sm" ng-click="ProcessProject()">Process</button>
+                    <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- MODEL PROCESS -->
+<!-- UPDATE DATA PICK -->
+<div id="mdUpdateDataPick" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Update data pick</h4>
+            </div>
+            <form name="DataPickForm" method="post">
+                <div class="modal-body fix-modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Upload</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label>Project</label>
+                                        <select class="form-control select2" style="width: 100%;" id="txtProjectNumber"
+                                                ng-model="ProjectNo">
+                                            <option ng-repeat="item in ProjectNameList" value="{{item.ProjectNumber}}">{{item.ProjectName}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>File data pick</label>
+                                        <input type="file" class="form-control" id="txtFileDataPick"
+                                                upload-file="FileDataPick"
+                                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-green-leaf btn-sm" ng-click="UploadDataPick()">
+                        <i class="fa fa-save"></i>&nbsp;<strong>Save</strong>
+                    </button>
+                    <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal"><strong>Cancel</strong></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- UPDATE DATA PICK -->
+<!-- MODEL PROJECT DATA PICK -->
+<div id="mdViewProjectDataPick" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 90%; margin: 15px auto;">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Project data pick from Inhouse & VA05</h4>
+            </div>
+            <form name="ProjectDataPickForm" method="post">                
+                <div class="modal-body">                    
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Projects <b class="text-info">{{ProjectNumber}}-{{ProjectName}}</b></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body fix-modal-body">
+                            <simple-pagination current-page="PagingPick.currentPage"
+                                               offset="PagingPick.offset"
+                                               page-limit="PagingPick.pageLimit"
+                                               page-limits="PagingPick.pageLimits"
+                                               on-update="callback()"
+                                               total="ProjectDataPickList.length"></simple-pagination>
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblProjectDataPick" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>CustCode</th>
+                                            <th>CustName</th>
+                                            <th>Product</th>
+                                            <th>ProductName</th>
+                                            <th>Address</th>
+                                            <th>Principal</th>
+                                            <th>SODoc Date</th>
+                                            <th>Order No.</th>
+                                            <th>Provine</th>
+                                            <th>CustGroup</th>
+                                            <th>Region</th>
+                                            <th>District</th>
+                                            <th>BillingDate</th>
+                                            <th>Reason</th>
+                                            <th>Quantity</th>
+                                            <th>Saleman Code</th>
+                                            <th>TT</th>
+                                            <th>TTV</th>                                        
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in filter = (ProjectDataPickList | limitTo:PagingPick.pageLimit:PagingPick.offset)"
+                                            ng-class-odd="'tr_odd'" ng-class-even=""
+                                            data-toggle="tooltip" title="{{item.CustCode}}">
+                                            <td>{{item.CustCode}}</td>
+                                            <td>{{item.CustName}}</td>
+                                            <td>{{item.Product}}</td>
+                                            <td>{{item.ProductName}}</td>
+                                            <td>{{item.Addr}}</td>
+                                            <td>{{item.PRINCIPAL}}</td>
+                                            <td>{{item.SODoc_Date}}</td>
+                                            <td>{{item.ORDER_NO}}</td>
+                                            <td>{{item.Provine}}</td>
+                                            <td>{{item.CustGroup}}</td>
+                                            <td>{{item.Region}}</td>
+                                            <td>{{item.District}}</td>
+                                            <td>{{item.BillingDate}}</td>
+                                            <td>{{item.Reason}}</td>
+                                            <td>{{item.Qty}}</td>
+                                            <td>{{item.SalemanCode}}</td>
+                                            <td>{{item.TT | number}}</td>
+                                            <td>{{item.TTV | number}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-12">
+                        <div class="col-md-5">
+                            <div class="form-group text-left">
+                                <simple-pagination current-page="PagingPick.currentPage"
+                                                   offset="PagingPick.offset"
+                                                   page-limit="PagingPick.pageLimit"
+                                                   page-limits="PagingPick.pageLimits"
+                                                   on-update="callback()"
+                                                   total="ProjectDataPickList.length"></simple-pagination>
+                            </div>                            
+                        </div>
+                        <div class="col-md-7 pull-right">
+                            <button type="button" class="btn btn-success btn-sm" ng-click="ExportDataPick(ProjectModel)">
+                                <i class="fa fa-file-excel-o"></i>&nbsp;Export
+                            </button>
+                            <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>                    
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- MODEL PROJECT DATA PICK -->
+<div id="mdRegion" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 30%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Select Region</h4>
+            </div>
+            <form name="RegionForm">
+                <div class="modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblSalemanCode" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" width="10">
+                                                <input type="checkbox" ng-click="AllRegion()" id="allRegion" ng-model="CheckAllRegion" />
+                                            </th>
+                                            <th>Region</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in RegionList">
+                                            <td class="text-center vmiddle">
+                                                <input type="checkbox" id="region_{{$index}}" />
+                                            </td>
+                                            <td>{{item.RegionName}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-sm" ng-click="SelectRegion()">OK</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- END REGION -->
+<!-- BEGIN CHANNEL -->
+<div id="mdChannel" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 30%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Select Channel</h4>
+            </div>
+            <form name="ChannelForm">
+                <div class="modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblSalemanCode" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" width="10">
+                                                <input type="checkbox" ng-click="AllChannel()" id="allChannel" ng-model="CheckAllChannel" />
+                                            </th>
+                                            <th>Channel</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in ChannelList">
+                                            <td class="text-center vmiddle">
+                                                <input type="checkbox" id="channel_{{$index}}" />
+                                            </td>
+                                            <td>{{item.Channel}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-sm" ng-click="SelectChannel()">OK</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- END CHANNEL -->
+<!-- BEGIN OVER VIEW -->
+<div id="mdOverView" class="modal fade" role="dialog">
+    <div class="modal-dialog" style="width: 80%; margin: 100px auto;">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-info">Over view</h4>
+            </div>
+            <form name="OverView">
+                <div class="modal-body fix-modal-body">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Project status</label>
+                                        <select class="form-control select2" style="width: 100%;"
+                                                id="ddlProjectStatus" ng-model="ProjectOverViewParam.ProjectStatus">
+                                            <option ng-repeat="item in ProjectStatusList" value="{{item.value}}">{{item.label}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2" style="margin-top: 25px;">
+                                    <div class="form-group">
+                                        <button type="button" class="btn btn-block btn-success btn-sm" id="btnFilter" ng-click="ProjectOverView()">
+                                            Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Projects</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12 table-responsive no-padding">
+                                <table id="tblOverView" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Name</th>
+                                            <th>Campaign type</th>
+                                            <th>Min target</th>
+                                            <th>Max target</th>
+                                            <th>Performance archive</th>
+                                            <th>Archive min target (%)</th>
+                                            <th>Archive max target (%)</th>
+                                            <th>Run rate min target (%)</th>
+                                            <th>Run rate max target (%)</th>
+                                            <th>Valid from</th>
+                                            <th>Valid to</th>
+                                            <th>Project Status</th>
+                                            <th>Target follow</th>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="item in OverViewProject">
+                                            <td>{{item.ProjectName | uppercase}}</td>
+                                            <td>{{item.CampaignType}}</td>
+                                            <td class="text-right">{{item.MinTarget | number}}</td>
+                                            <td class="text-right">{{item.MaxTarget | number}}</td>
+                                            <td class="text-right">{{item.PerformanceArchive | number : 0}}</td>
+                                            <td class="text-right">
+                                                <label ng-if="item.ArchiveMinTarget >= 100">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-success'"><b>{{item.ArchiveMinTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.ArchiveMinTarget >= 80 && item.ArchiveMinTarget <= 99">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-warning'"><b>{{item.ArchiveMinTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.ArchiveMinTarget < 80">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-danger'"><b>{{item.ArchiveMinTarget | number : 2}}</b></span>
+                                                </label>
+                                            </td>
+                                            <td class="text-right">
+                                                <label ng-if="item.ArchiveMaxTarget >= 100">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-success'"><b>{{item.ArchiveMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.ArchiveMaxTarget >= 80 && item.ArchiveMaxTarget <= 99">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-warning'"><b>{{item.ArchiveMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.ArchiveMaxTarget < 80">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-danger'"><b>{{item.ArchiveMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                            </td>
+                                            <td class="text-right">
+                                                <label ng-if="item.RunRateMinTarget >= 100">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-success'"><b>{{item.RunRateMinTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.RunRateMinTarget >= 80 && item.RunRateMinTarget <= 99">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-warning'"><b>{{item.RunRateMinTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.RunRateMinTarget < 80">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-danger'"><b>{{item.RunRateMinTarget | number : 2}}</b></span>
+                                                </label>
+                                            </td>
+                                            <td class="text-right">
+                                                <label ng-if="item.RunRateMaxTarget >= 100">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-success'"><b>{{item.RunRateMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.RunRateMaxTarget >= 80 && item.RunRateMaxTarget <= 99">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-warning'"><b>{{item.RunRateMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                                <label ng-if="item.RunRateMaxTarget < 80">
+                                                    <span ng-class="item.ProjectStatus == 'CLOSED' ? 'label label-default' : 'label label-danger'"><b>{{item.RunRateMaxTarget | number : 2}}</b></span>
+                                                </label>
+                                            </td>
+                                            <td>{{item.ValidFrom}}</td>
+                                            <td>{{item.ValidTo}}</td>
+                                            <td class="text-center">
+                                                <small class="label label-info text-center" ng-if="item.ProjectStatus == 'WAITING'">
+                                                    {{item.ProjectStatus}}
+                                                </small>
+                                                <small class="label label-success text-center" ng-if="item.ProjectStatus == 'INPROGRESS'">
+                                                    {{item.ProjectStatus}}
+                                                </small>
+                                                <small class="label label-default text-center" ng-if="item.ProjectStatus == 'CLOSED'">
+                                                    {{item.ProjectStatus}}
+                                                </small>
+                                            </td>
+                                            <td>{{item.TargetFollow}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- END OVER VIEW -->
+</div>
+<script src="/Scripts/Controller/MarketingProjectController.js"></script>
+<!-- END MODAL -->

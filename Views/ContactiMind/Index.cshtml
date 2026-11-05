@@ -1,0 +1,241 @@
+﻿@{
+    ViewBag.Title = "Contact phone";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblContactiMind th, #tblContactPhoneNumber th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblContactiMind td, #tblContactPhoneNumber td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.select2').select2();
+    })
+</script>
+<div class="ng-cloak" ng-controller="ContactiMindController">
+    <section class="content-header">
+        <h1>
+            Contact Phone
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Contact Phone Information</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchContactiMind()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Cust Code</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.cust_code" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Cust Name</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.cust_name" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-sm bg-aqua-active">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="col-md-6 pull-left">
+                        <div class="form-group">
+                            <simple-pagination current-page="settings.currentPage"
+                                               offset="settings.offset"
+                                               page-limit="settings.pageLimit"
+                                               page-limits="settings.pageLimits"
+                                               on-update="callback()"
+                                               total="ListContactiMind.length"></simple-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Contact iMind Information</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblContactiMind" class="table table-bordered">
+                        <thead>
+                            <tr class="bg-light-blue-active">
+                                <th>#</th>
+                                <th>Custcode</th>
+                                <th>Custname</th>
+                                <th>Address</th>
+                                <th>CGrpCode</th>
+                                <th>CGrpName</th>
+                                <th>District</th>
+                                <th>Province</th>
+                                <th>Region</th>
+                                <th>Channel</th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListContactiMind | limitTo:settings.pageLimit:settings.offset)"
+                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                <td>
+                                    <button type="button" title="View" class="btn btn-info btn-sm" ng-click="ContactPhoneNumber(item)"
+                                            data-backdrop="static" data-keyboard="false"
+                                            data-toggle="modal" data-target="#mdViewListPhone">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                                <td>{{item.cust_code}}</td>
+                                <td>{{item.cust_name}}</td>
+                                <td>{{item.addrs}}</td>
+                                <td>{{item.cgrp_code}}</td>
+                                <td>{{item.cgrp_name}}</td>
+                                <td>{{item.district}}</td>
+                                <td>{{item.province}}</td>
+                                <td>{{item.region}}</td>
+                                <td>{{item.channel}}</td>
+                                
+                            </tr>
+                        </tbody>
+                    </table>
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListContactiMind.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdViewListPhone" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Contact PhoneNumber</h4>
+                </div>
+                <form name="ListContactPhoneNumberForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <div class="col-md-12">
+                                    <table id="tblContactPhoneNumber" class="table table-bordered">
+                                        <thead>
+                                            <tr class="bg-green-active">
+                                                <th>#</th>
+                                                <th>cust_code</th>
+                                                <th>cust_name</th>
+                                                <th>person_name</th>
+                                                <th>phone_number</th>
+                                                <th>person_note</th>
+                                                <th>email_addr</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in ListContactPhoneNumber"
+                                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                                <td>
+                                                    <button type="button" title="Delete phonenumber" class="btn btn-pinterest btn-sm" 
+                                                            ng-click="DeletePhoneNumber(item)">
+                                                        <i class="fa fa-trash-o"></i>
+                                                    </button>
+                                                </td>
+                                                <td>{{item.cust_code}}</td>
+                                                <td>{{item.cust_name}}</td>
+                                                <td>{{item.person_name}}</td>
+                                                <td>{{item.phone_number}}</td>
+                                                <td>{{item.person_note}}</td>
+                                                <td>{{item.email_addr}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/ContactiMindController.js"></script>

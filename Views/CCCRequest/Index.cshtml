@@ -1,0 +1,381 @@
+﻿@{
+    ViewBag.Title = "CCC Request";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #tblRequest th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #tblRequest td {
+        vertical-align: middle;
+    }
+    .color-col {
+        background-color: #C2EEFA;
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+    .dateControl { }
+    .editor { }
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+</style>
+
+<input type="hidden" id="userRequest" value="@userSession.UserId" />
+<input type="hidden" id="team" value="@userSession.Team" />
+<div class="ng-cloak" ng-controller="CCCRequestController">
+<section class="content-header">
+    <h1>CCC Request Management
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">CCC Request Management</li>
+    </ol>
+</section>
+<section class="content">
+    <!-- ROLE -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <!-- /.form-group -->
+                    <div class="form-group">
+                        <label>Ticket No.</label>
+                        <select class="form-control select2" style="width: 100%;"
+                            ng-model="SearchParam.TicketNo">
+                            @foreach (var item in ViewBag.TicketNoList)
+                            {
+                            <option value="@item.TicketId">@item.TicketName - @item.Title</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control" ng-model="SearchParam.Title" ng-change="SetPaging()" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Request Status</label>
+                        <select class="form-control select2" style="width: 100%;"
+                            ng-model="SearchParam.ReqStatus">                            
+                            <option ng-repeat="item in RequestStatus" value="{{item.key}}">{{item.value}}</option>                            
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Create date</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            <input type="text" class="form-control dateControl" ng-model="SearchParam.CreateDate"
+                                   data-format="dd-mm-yyyy" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Team</label>
+                        <select class="form-control select2" style="width: 100%;"
+                                data-placeholder="Select a team"
+                                ng-model="SearchParam.Team">
+                            <option value="MNG">Manager</option>
+                            <option value="Support">Support</option>
+                            <option value="CDI">CDI</option>
+                            <option value="MD">Medical Device</option>
+                            <option value="PM">Pharmacy</option>
+                            <option value="TM">Tele Marketing</option>
+                            <option value="TS">Tele Sale</option>
+                            <option value="OPU">OPU</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                
+                <div class="col-md-1 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-primary btn-sm" ng-click="SearchRequest()">
+                            <strong>Search</strong>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-1 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="resetForm()">
+                            <strong>Clear</strong>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="SearchParam.IsDelete" />
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="label label-danger"><b>IS DELETE</b></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-right">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-success btn-sm"
+                                data-backdrop="static" data-keyboard="false"
+                                ng-click="GetTicketNo()"
+                                data-toggle="modal" data-target="#mdRequest">
+                            <strong>New ticket</strong>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12 pull-right">
+                <simple-pagination current-page="settings.currentPage"
+                                   offset="settings.offset"
+                                   page-limit="settings.pageLimit"
+                                   page-limits="settings.pageLimits"
+                                   on-update="callback()"
+                                   total="ListRequest.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Request List</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                
+                <br />
+                <table id="tblRequest" class="table table-bordered">
+                    <thead>
+                        <tr class="text-green">
+                            <th>Action</th>
+                            <th>Status</th>
+                            <th>Ticket No</th>
+                            <th>Title</th>
+                            <th>Request Status</th>
+                            <th>Percent (%)</th>
+                            <th>Expect Complete Date</th>
+                            <th>Estimate Date</th>                            
+                            <th>Create By</th>
+                            <th>Create Date</th>
+                            <th>Update By</th>
+                            <th>Update Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListRequest | filter : {Title: SearchParam.Title} 
+                                                                         | limitTo:settings.pageLimit:settings.offset)">                            
+                            <td class="text-center">                                
+                                <span>
+                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" 
+                                            ng-click="GetRequestDetail(item)" data-target="#mdRequest">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </span>
+                                <span ng-if="userRequest != null && (item.CreateBy == userRequest || item.Team == team || userRequest == 'huynhpa')">
+                                    <button type="button" class="btn btn-pinterest btn-sm" 
+                                            data-toggle="modal" ng-click="DelReq(item)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </span>                                
+                                <span ng-if="item.Approval != 'APPROVED'">
+                                    <button type="button" class="btn btn-success btn-sm" title="Approval"
+                                            ng-click="Appr(item)">
+                                        <i class="fa fa-check"></i>
+                                    </button>
+                                </span>
+                            </td>
+                            <td>
+                                <span ng-if="item.Approval == 'APPROVED'">
+                                    <small class="label bg-green text-center">{{item.Approval}}</small>
+                                </span>
+                                <span ng-if="item.Approval == 'REJECTED'">
+                                    <small class="label bg-red text-center">{{item.Approval}}</small>
+                                </span>
+                                <span ng-if="item.Approval == 'AWAITING'">
+                                    <small class="label bg-yellow text-center">{{item.Approval}}</small>
+                                </span>
+                            </td>
+                            <td class="text-center text-bold">{{item.TicketNo | uppercase}}</td>
+                            <td class="text-left text-bold">{{item.Title}}</td>
+                            <td class="text-center text-bold text-green">{{item.ReqStatus}}</td>
+                            <td class="text-center">{{item.Percentage}}</td>
+                            <td class="text-right">{{item.CompleteDate}}</td>
+                            <td class="text-right">{{item.EstimateDate}}</td>
+                            <td>{{item.CreateBy}}</td>
+                            <td>{{item.CreateDate}}</td>
+                            <td>{{item.UpdateBy}}</td>
+                            <td>{{item.UpdateDate}}</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="ListRequest.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- MODAL DIALOG -->
+<div id="mdRequest" class="modal fade" role="dialog">
+    <form name="RequestForm" ng-submit="Save()" method="post" novalidate>
+        <div class="modal-dialog" style="width: 85%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-red">CCC Request Information</h4>
+                </div>
+                <div class="modal-body fix-modal-body">                    
+                    <div class="box box-info">                        
+                        <div class="box-header with-border">
+                            <h3 class="box-title"></h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Ticket No</label>
+                                        <input type="text" class="form-control" ng-model="RequestModel.TicketNo" ng-disabled="true"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="text-red">Title *</label>
+                                        <input type="text" class="form-control" ng-model="RequestModel.Title" maxlength="250" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Expect complete date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl"
+                                                   ng-model="RequestModel.CompleteDate"
+                                                   data-format="yyyy-mm-dd" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">                                
+                                @if (userSession != null && userSession.UserId.Equals("huynhpa")) {
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Estimate date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" 
+                                                   ng-model="RequestModel.EstimateDate"
+                                                   data-format="yyyy-mm-dd" />
+                                        </div>
+                                    </div>
+                                </div>
+                                }
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="text-red">Request status *</label>
+                                        <select class="form-control select2" style="width: 100%;"
+                                                ng-model="RequestModel.ReqStatus">
+                                            <option ng-repeat="item in RequestStatus" value="{{item.key}}">{{item.value}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Percent (%)</label>
+                                        <input type="number" maxlength="3" max="100" class="form-control" ng-model="RequestModel.Percentage" />
+                                    </div>
+                                </div>    
+                                
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="text-red">Description *</label>
+                                        <textarea type="text" class="editor" id="txtDescription" ng-model="RequestModel.Description" placeholder="Place description about your request here..."
+                                                  style="width:100%;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Remark</label>
+                                        <textarea type="text" class="editor" id="txtRemark" ng-model="RequestModel.Remark" placeholder="Place description about your request here..."
+                                                  style="width:100%;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info">Submit</button>
+                    <button type="button" class="btn btn-pinterest" data-dismiss="modal" ng-click="Cancel()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/CCCRequestController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>

@@ -1,0 +1,703 @@
+﻿@{
+    ViewBag.Title = "Call Plan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblCallPlan th, #tblCallPlanActual th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblCallPlan td, #tblCallPlanActual td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<div class="ng-cloak" ng-controller="CallPlanController">
+    <section class="content-header">
+        <h1>
+            Call Plan
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li>Campaign Management</li>
+            <li class="active">Call Plan</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li><a href="#CallPlanBySaleman" data-toggle="tab" aria-expanded="false"><strong>Call plan SFA</strong></a></li>
+                        <li class="" ng-click="AllActiveCampaign()"><a href="#CallPlanByCampaign" data-toggle="tab" aria-expanded="false"><strong>Call plan by focus campaign</strong></a></li>
+                        <li class="active"><a href="#DailyInTimeSummary" data-toggle="tab" aria-expanded="false"><strong>Daily In Time Summary</strong></a></li>
+                        <li class=""><a href="#LimitedCustomer" data-toggle="tab" aria-expanded="false"><strong>Limited Customer</strong></a></li>
+                    </ul>
+                    <div class="col-md-12 tab-content">
+                        <!-- begin call plan saleman -->
+                        <div class="tab-pane" id="CallPlanBySaleman">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Call Plan SFA</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form ng-submit="SearchCallPlan()" name="formUploadCallPlan" method="post">
+                                        <div class="col-md-12">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Saleman code</label>
+                                                    <input type="text" class="form-control" ng-model="CallPlanDto.salesman_code" id="txtSalemanCode" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>CustCode</label>
+                                                    <input type="text" class="form-control" ng-model="CallPlanDto.cust_code" id="txtcust_code" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Route date: from</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="CallPlanDto.route_date"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>to</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="CallPlanDto.route_date_end"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-sm bg-aqua-active">
+                                                        <i class="fa fa-search"></i> <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListCallPlan.length"></simple-pagination>
+                                    </div>
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblCallPlan" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-blue-sky">
+
+                                                    <th>Saleman Code</th>
+                                                    <th>FullName</th>
+                                                    <th>Extension</th>
+                                                    <th>Route Date</th>
+                                                    <th>Customer Code</th>
+                                                    <th>Project Name</th>
+                                                    <th>Import date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListCallPlan | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td>{{item.salesman_code}}</td>
+                                                    <td>{{item.FullName}}</td>
+                                                    <td class="text-right">{{item.AgentNumber}}</td>
+                                                    <td>{{item.route_date}}</td>
+                                                    <td>{{item.cust_code}}</td>
+                                                    <td>{{item.project_name}}</td>
+                                                    <td>{{item.import_date}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end call plan by saleman -->
+                        <!-- begin Call plan by campaign -->
+                        <div class="tab-pane" id="CallPlanByCampaign">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Search</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>CustCode</label>
+                                                <input type="text" class="form-control" ng-model="CallPlanDto.CustCode" id="txtCustCode" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Saleman Code</label>
+                                                <input type="text" class="form-control" ng-model="CallPlanDto.salesman_code" id="txtsalesman_code" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Call Status</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        data-placeholder="Select status"
+                                                        ng-model="CallPlanDto.call_status">
+                                                    <option value="">---Select all---</option>
+                                                    <option value="1">Success</option>
+                                                    <option value="0">Unsuccess</option>
+                                                    <option value="2">Call back</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Month (mm-yyyy)</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control monthControl"
+                                                           id="dtFocusMonth" ng-model="CallPlanDto.FocusMonth"
+                                                           data-format="mm-yyyy" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-2 pull-left">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-aqua-active btn-sm" ng-click="SearchCallPlanByCampaign()">
+                                                    <i class="fa fa-search"></i> <strong>Search</strong>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 pull-left">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-orange-active btn-sm"
+                                                        ng-click="CampaignByCustomerTemplate()" title="Template focus campaign">
+                                                    <i class="fa fa-cloud-download"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">Action type</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        data-placeholder="Select Action"
+                                                        ng-model="CallPlanDto.action_type">
+                                                    <option value="">---Select---</option>
+                                                    <option value="0">Add new &amp; Update</option>
+                                                    <option value="1">Remove &amp; Replace</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2" ng-show="CallPlanDto.action_type == '1'">
+                                            <div class="form-group">
+                                                <label class="text-red">Remove &amp; Replace Type</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        data-placeholder="Select remove type"
+                                                        ng-model="CallPlanDto.remove_type">
+                                                    <option value="">---Select---</option>
+                                                    <option value="0">Campaign</option>
+                                                    <option value="1">Data already uploaded</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3" ng-show="CallPlanDto.action_type == '1'">
+                                            <div class="form-group">
+                                                <label class="text-red">Campaign</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlCampaign" ng-model="CallPlanDto.ServiceTypeId">
+                                                    <option value="">Select all</option>
+                                                    <option ng-repeat="item in ActiveCampaignList" value="{{item.ID}}">{{item.ServiceName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 pull-left fix-chk-mg">
+                                            <div class="form-group has-error">
+                                                <input type="file" class="form-control" id="txtCampaignByCustomer"
+                                                       upload-file="CampaignByCustomerFile"
+                                                       accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 pull-left fix-chk-mg">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-blue-active btn-sm"
+                                                        ng-click="ImportCampaignByCustomer()" title="Upload callplan focus">
+                                                    <i class="fa fa-cloud-upload"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 pull-left fix-chk-mg">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-green-active btn-sm"
+                                                        ng-click="ExportCampaignFocus()" title="Campaign focus">
+                                                    <i class="fa fa-file-excel-o"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Focus Campaign</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="CampaignFocus.length"></simple-pagination>
+                                    </div>
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblCallPlanActual" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-aqua-active">
+                                                    <th>Service Name</th>
+                                                    <th>Service Code</th>
+                                                    <th>CustCode</th>
+                                                    <th>FullName</th>
+                                                    <th>Extension</th>
+                                                    <th>Saleman code</th>
+                                                    <th>GroupCode</th>
+                                                    <th>Import date</th>
+                                                    <th>Call date</th>
+                                                    <th>Call status</th>
+                                                    <th>Create By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (CampaignFocus | filter : {call_status: CallPlanDto.call_status} | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td>{{item.ServiceName}}</td>
+                                                    <td>{{item.ServiceCode}}</td>
+                                                    <td class="text-bold">{{item.CustCode}}</td>
+                                                    <td>{{item.FullName}}</td>
+                                                    <td>{{item.AgentNumber}}</td>
+                                                    <td>{{item.salesman_code}}</td>
+                                                    <td>{{item.GroupCode}}</td>
+                                                    <td>{{item.CreateDate}}</td>
+                                                    <td>{{item.call_date}}</td>
+                                                    <td class="text-center">
+                                                        <span ng-if="item.call_status == '1'">
+                                                            <small class="label label-success">
+                                                                <b>Success</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.call_status == '0'">
+                                                            <small class="label label-danger">
+                                                                <b>Unsuccess</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.call_status == '2'">
+                                                            <small class="label label-info">
+                                                                <b>Call back</b>
+                                                            </small>
+                                                        </span>
+                                                    </td>
+                                                    <td>{{item.CreateBy}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- daily in time summary -->
+                        <div class="tab-pane active" id="DailyInTimeSummary">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Search</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Saleman Code</label>
+                                                <input type="text" class="form-control" ng-model="CallPlanDto.salesman_code" id="txtsalesman_code" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Month (mm-yyyy)</label>
+                                                <div class="input-group date">
+                                                    <div class="input-group-addon">
+                                                        <i class="fa fa-calendar"></i>
+                                                    </div>
+                                                    <input type="text" class="form-control monthControl"
+                                                           id="dtFocusMonth" ng-model="CallPlanDto.summary_month"
+                                                           data-format="mm-yyyy" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group has-error">
+                                                <label>Daily in time summary</label>
+                                                <input type="file" class="form-control" id="txtDailyInTimeSummary"
+                                                       upload-file="DailyInTimeSummaryFile"
+                                                       accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 pull-left fix-chk-mg">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-blue-active btn-sm"
+                                                        ng-click="ImportDailyInTimeSummary()" title="Upload daily time summary">
+                                                    <i class="fa fa-cloud-upload"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-2 pull-left">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-block bg-aqua-active btn-sm" ng-click="SearchDailyInTimeSummary()">
+                                                    <i class="fa fa-search"></i> <strong>Search</strong>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Daily In Time Summary</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="DailyInTimeSummary.length"></simple-pagination>
+                                    </div>
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblDailyInTimeSummary" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-aqua-active">
+                                                    <th>summary_month</th>
+                                                    <th>sales_area_code</th>
+                                                    <th>sales_area_name</th>
+                                                    <th>salesrep_code</th>
+                                                    <th>salesrep_name</th>
+                                                    <th>visit_id</th>
+                                                    <th>cust_code</th>
+                                                    <th>cust_name</th>
+                                                    <th>cont_code</th>
+                                                    <th>cont_name</th>
+                                                    <th>class</th>
+                                                    <th>call_date</th>
+                                                    <th>time_in</th>
+                                                    <th>time_out</th>
+                                                    <th>time_spend</th>
+                                                    <th>reason_code</th>
+                                                    <th>reason_name</th>
+                                                    <th>remarks</th>
+                                                    <th>start_date</th>
+                                                    <th>end_date</th>
+                                                    <th>dummy_reason_code</th>
+                                                    <th>txn_timestamp</th>
+                                                    <th>sfms_ind</th>
+                                                    <th>call_ind</th>
+                                                    <th>sales_ord_ind</th>
+                                                    <th>tra_ind</th>
+                                                    <th>coll_ind</th>
+                                                    <th>det_ind</th>
+                                                    <th>visit_ind</th>
+                                                    <th>drc_ind</th>
+                                                    <th>mss_ind</th>
+                                                    <th>in_latitude</th>
+                                                    <th>in_longitude</th>
+                                                    <th>in_gpstime</th>
+                                                    <th>out_latitude</th>
+                                                    <th>out_longitude</th>
+                                                    <th>out_gpstime</th>
+                                                    <th>MST_Latitude</th>
+                                                    <th>MST_Longitude</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (DailyInTimeSummary | filter : {salesrep_code: CallPlanDto.salesman_code} | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td>{{item.summary_month}}</td>
+                                                    <td>{{item.sales_area_code}}</td>
+                                                    <td>{{item.sales_area_name}}</td>
+                                                    <td>{{item.salesrep_code}}</td>
+                                                    <td>{{item.salesrep_name}}</td>
+                                                    <td>{{item.visit_id}}</td>
+                                                    <td>{{item.cust_code}}</td>
+                                                    <td>{{item.cust_name}}</td>
+                                                    <td>{{item.cont_code}}</td>
+                                                    <td>{{item.cont_name}}</td>
+                                                    <td>{{item.class}}</td>
+                                                    <td>{{item.call_date}}</td>
+                                                    <td>{{item.time_in}}</td>
+                                                    <td>{{item.time_out}}</td>
+                                                    <td>{{item.time_spend}}</td>
+                                                    <td>{{item.reason_code}}</td>
+                                                    <td>{{item.reason_name}}</td>
+                                                    <td>{{item.remarks}}</td>
+                                                    <td>{{item.start_date}}</td>
+                                                    <td>{{item.end_date}}</td>
+                                                    <td>{{item.dummy_reason_code}}</td>
+                                                    <td>{{item.txn_timestamp}}</td>
+                                                    <td>{{item.sfms_ind}}</td>
+                                                    <td>{{item.call_ind}}</td>
+                                                    <td>{{item.sales_ord_ind}}</td>
+                                                    <td>{{item.tra_ind}}</td>
+                                                    <td>{{item.coll_ind}}</td>
+                                                    <td>{{item.det_ind}}</td>
+                                                    <td>{{item.visit_ind}}</td>
+                                                    <td>{{item.drc_ind}}</td>
+                                                    <td>{{item.mss_ind}}</td>
+                                                    <td>{{item.in_latitude}}</td>
+                                                    <td>{{item.in_longitude}}</td>
+                                                    <td>{{item.in_gpstime}}</td>
+                                                    <td>{{item.out_latitude}}</td>
+                                                    <td>{{item.out_longitude}}</td>
+                                                    <td>{{item.out_gpstime}}</td>
+                                                    <td>{{item.MST_Latitude}}</td>
+                                                    <td>{{item.MST_Longitude}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end daily in time summary -->
+                        <!-- begin LimitedCustomer -->
+                        <div class="tab-pane" id="LimitedCustomer">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Limited Customer</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form ng-submit="SearchLimitedCustomer()" name="formUploadLimitCustomer" method="post">
+                                        <div class="col-md-12">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Leader</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            ng-model="LimitCustomerDto.leader_saleman">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in LeaderList" value="{{item.LeaderExtension}}">{{item.LeaderExtension}}-{{item.LeaderName}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>CustCode</label>
+                                                    <input type="text" class="form-control" ng-model="LimitCustomerDto.cust_code" id="txtlmcust_code" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Limit date: from</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="LimitCustomerDto.limit_from"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>to</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="LimitCustomerDto.limit_to"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-4">
+                                                <div class="form-group has-error">
+                                                    <label>Customer File</label>
+                                                    <input type="file" class="form-control" id="txtLimitedCustomerFile"
+                                                           upload-file="LimitedCustomerFile"
+                                                           accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-left fix-chk-mg">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn btn-block bg-blue-active btn-sm"
+                                                            ng-click="ImportLimitedCustomer()" title="Upload">
+                                                        <i class="fa fa-cloud-upload"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-sm bg-aqua-active">
+                                                        <i class="fa fa-search"></i> <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListLimitedCustomer.length"></simple-pagination>
+                                    </div>
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblLimitedCustomer" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-blue-sky">
+                                                    <th>Saleman Code</th>
+                                                    <th>FullName</th>
+                                                    <th>Extension</th>
+                                                    <th>Customer Code</th>
+                                                    <th>Customer Name</th>
+                                                    <th>Limit from</th>
+                                                    <th>Limit to</th>
+                                                    <th>LeaderName</th>
+                                                    <th>Import date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListLimitedCustomer | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td>{{item.salesman_code}}</td>
+                                                    <td>{{item.FullName}}</td>
+                                                    <td class="text-right">{{item.extension}}</td>
+                                                    <td>{{item.cust_code}}</td>
+                                                    <td>{{item.cust_name}}</td>
+                                                    <td>{{item.limit_from}}</td>
+                                                    <td>{{item.limit_to}}</td>
+                                                    <td>{{item.LeaderName}}</td>
+                                                    <td>{{item.import_date}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end LimitedCustomer -->
+                    </div>
+                    <!-- end tab content -->
+                </div>                
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/CallPlanController.js"></script>
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            orientation: 'bottom',
+            useCurrent: true,
+            minViewMode: "months",
+            endDate: '+0m'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+    })
+</script>

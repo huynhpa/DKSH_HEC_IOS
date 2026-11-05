@@ -1,0 +1,455 @@
+﻿@{
+    ViewBag.Title = "Agent Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+    .fix-height-30 {
+        height: 30px;
+        vertical-align: middle;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblAgent th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblAgent td {
+        vertical-align: middle;
+    }
+
+    .dateControl {
+    }
+    .tr_odd {
+        background-color: #CCF2C9;
+    }
+    .select2{
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 450px;
+    }
+    .fix-chk-mg {
+        margin-top: 25px;
+    }
+
+</style>
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<div class="ng-cloak" ng-controller="AgentController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.contracts" value="@userDto.contracts" />
+    <section class="content-header">
+        <h1>
+            Agent Management
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Agent Management</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form method="get" name="formSearchAgent" ng-submit="SearchAgent()">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>UserName</label>
+                                <input type="text" class="form-control" id="txtUserName" ng-model="SearchParam.UserName" ng-change="SetPaging()" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Extension</label>
+                                <input type="text" class="form-control" id="txtAgentNumber" ng-model="SearchParam.AgentNumber" ng-change="SetPaging()" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>FullName</label>
+                                <input type="text" class="form-control" id="txtSearchFullName" ng-model="SearchParam.FullName" ng-change="SetPaging()" />
+                            </div>
+                        </div>                           
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-success btn-sm">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="ClearParam()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1 pull-right" ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block bg-green-gradient btn-sm" ng-click="ClearModel()"
+                                        data-backdrop="static" data-keyboard="false"
+                                        title="New agent"
+                                        data-toggle="modal" data-target="#mdAgent">
+                                    <i class="fa fa-user-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>                    
+                </form>
+                <div class="col-md-12">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListAgent.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Agent List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblAgent" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-active">
+                                <th>Action</th>
+                                <th>Contract</th>
+                                <th>Saleman Code</th>
+                                <th>Extension</th>
+                                <th>SFECode</th>
+                                <th>UserName</th>
+                                <th>FullName</th>                                
+                                <th>Project Name</th>
+                                <th>IsActive</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListAgent
+                                                | filter : {AgentNumber: SearchParam.AgentNumber, UserName: SearchParam.UserName, FullName: SearchParam.FullName}
+                                                | limitTo:settings.pageLimit:settings.offset)">
+                                <td class="text-center">
+                                    <span ng-if="(UserSession.IsAdmin != null && UserSession.IsAdmin != '') || UserSession.UserName == item.UserName">
+                                        <button type="button" class="btn bg-blue-active btn-sm"
+                                                title="Update agent"
+                                                ng-click="GetAgentDetail(item.UserId)">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </span>
+                                    <span ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                                        <button type="button" class="btn btn-pinterest btn-sm"
+                                                ng-click="DeleteAgent(item)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </span>
+                                    <span ng-if="(UserSession.IsAdmin != null && UserSession.IsAdmin != '') || UserSession.UserName == item.UserName">
+                                        <button type="button" class="btn btn-warning btn-sm"
+                                                title="Reset password"
+                                                ng-click="ResetPassword(item)">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td>{{item.contracts}}</td>
+                                <td>{{item.EmployeeID}}</td>
+                                <td>{{item.AgentNumber}}</td>
+                                <td>{{item.SFECode}}</td>
+                                <td>{{item.UserName}}</td>
+                                <td>{{item.FullName}}</td>                                
+                                <td>{{item.ProjectName}}</td>
+                                <td class="text-center">
+                                    <span ng-if="item.IsLockedOut == '0'">
+                                        <small class="label label-success">
+                                            <b>Active</b>
+                                        </small>
+                                    </span>
+                                    <span ng-if="item.IsLockedOut == '1'">
+                                        <small class="label label-danger">
+                                            <b>In-Active</b>
+                                        </small>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdAgent" class="modal fade" role="dialog">
+        <form name="AgentForm" ng-submit="Save()" method="post" novalidate>
+            <div class="modal-dialog" style="width: 80%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header bg-gray-active">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Agents &amp; Roles Information</h4>
+                    </div>
+                    <div class="modal-body fix-modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Agent info</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <!-- INSERT -->
+                            <div class="box-body" ng-show="!isUpdate">
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Login UserName</label>
+                                            <input type="text" class="form-control" id="txtLoginID" ng-model="hrEmployeeDto.WindowsUser"/>
+                                        </div>                                        
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label class="text-red">Password</label>
+                                            <input type="password" class="form-control" id="txtPassword" ng-model="hrEmployeeDto.Password" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label class="text-red">Retype Password</label>
+                                            <input type="password" class="form-control" id="txtRetypePassword" ng-model="hrEmployeeDto.PasswordSalt" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>Project</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    data-placeholder="Select a project"
+                                                    ng-model="hrEmployeeDto.GroupID">
+                                                <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                                            </select>
+                                        </div>
+                                    </div>                                   
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Fullname</label>
+                                            <input type="text" class="form-control" id="txtFullName" ng-model="hrEmployeeDto.FullName" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Agent Group</label>
+                                            <select class="form-control" style="width: 100%;"
+                                                    id="ddlGroupCode" ng-model="hrEmployeeDto.GroupCode">
+                                                <option value="">ALL</option>
+                                                @foreach (var item in ViewBag.AGENT_GROUP)
+                                                {
+                                                    <option value="@item.GroupCode">@item.GroupName</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Saleman code</label>
+                                            <input type="text" class="form-control" id="txtEmployeeID" ng-model="hrEmployeeDto.EmployeeID" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label class="text-red">Extension</label>
+                                            <input type="text" class="form-control" id="txtExtension" ng-model="hrEmployeeDto.AgentNumber" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Contract</label>
+                                            <select class="form-control" style="width: 100%;"
+                                                    id="ddlcontracts" ng-model="hrEmployeeDto.contracts">
+                                                <option value="">--SELECT--</option>
+                                                <option value="VIME">VIME</option>
+                                                <option value="DKSH">DKSH</option>
+                                                <option value="GIGAMED">GIGAMED</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>                                
+                            </div>
+                            <!-- UPDATE -->
+                            <div class="box-body" ng-show="isUpdate">
+                                <div class="col-md-12">
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">UserName</label>
+                                                <input type="text" class="form-control" id="txtWindowsUser" disabled="disabled" ng-model="hrEmployeeDto.WindowsUser" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">Fullname</label>
+                                                <input type="text" class="form-control" id="txtFullNm" ng-model="hrEmployeeDto.FullName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Contract</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlcontracts" ng-model="hrEmployeeDto.contracts">
+                                                    <option value="">--SELECT--</option>
+                                                    <option value="VIME">VIME</option>
+                                                    <option value="DKSH">DKSH</option>
+                                                    <option value="GIGAMED">GIGAMED</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Agent Group</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlGroupCode" ng-model="hrEmployeeDto.GroupCode">
+                                                    <option value="">ALL</option>
+                                                    @foreach (var item in ViewBag.AGENT_GROUP)
+                                                    {
+                                                        <option value="@item.GroupCode">@item.GroupName</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Team</label>
+                                                <input type="text" class="form-control" id="txtLastNm" ng-model="hrEmployeeDto.LastName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Saleman code</label>
+                                                <input type="text" class="form-control" id="txtEmpID" ng-model="hrEmployeeDto.EmployeeID" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>SFE code</label>
+                                                <input type="text" class="form-control" id="txtSFECode" ng-model="hrEmployeeDto.SFECode" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Project</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        data-placeholder="Select a project"
+                                                        ng-model="hrEmployeeDto.GroupID">
+                                                    <option value="00000000-0000-0000-0000-000000000000">All Campaign</option>
+                                                    <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 fix-chk-mg">
+                                            <div class="form-group checkbox">
+                                                <label>
+                                                    <input type="checkbox" ng-model="MemberDto.IsLockedOut" />
+                                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                    <span class="label label-info">
+                                                        <b data-toggle="tooltip" title="Locked Account">
+                                                            Locked Account
+                                                        </b>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>     
+                             
+                        <div class="box box-warning">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Roles info</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <table id="tblAgent" class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center vmiddle" width="10">
+                                                    <input type="checkbox" ng-click="CheckAllRole()" id="chkAll" ng-model="AllRoles" />
+                                                </th>
+                                                <th>Role Name</th>                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in filterData = (RoleList)">
+                                                <td class="text-center vmiddle">
+                                                    <input type="checkbox" id="role_{{$index}}" value="{{item.RoleId}}" />
+                                                </td>
+                                                <td>{{item.RoleName | uppercase}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-green-leaf">Submit</button>
+                        <button type="button" class="btn btn-pinterest" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<script src="/Scripts/Controller/AgentController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+    });
+</script>

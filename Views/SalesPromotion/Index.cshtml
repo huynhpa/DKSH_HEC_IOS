@@ -1,0 +1,752 @@
+﻿@{
+    ViewBag.Title = "Sales Promotion";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblSalesPromotion th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblSalesPromotion td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 450px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #C21C0B;
+    }
+    .color-01 {
+        background-color: #C3CB60;
+    }
+    .color-03 {
+        background-color: #9EDCE7;
+    }
+    .color-02 {
+        background-color: #F1BC82;
+    }
+</style>
+
+<div class="ng-cloak" ng-controller="SalesPromotionController">
+    <section class="content-header">
+        <h1>
+            Sales Promotion
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Sales Promotion</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form name="formSearch" method="get" ng-submit="SearchSalesPromotion()">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Supplier</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        ng-model="SearchParam.Suppliers">
+                                    @foreach (var item in ViewBag.Suppliers)
+                                    {
+                                        <option value="@item.Supplier">@item.Supplier</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Apply entity</label>
+                                <select class="form-control select2" ng-model="SearchParam.EntityApply" multiple="multiple">
+                                    <option ng-repeat="item in Entities" value="{{item.value}}">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" ng-model="SearchParam.StartDate"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" ng-model="SearchParam.EndDate"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Create date: From</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" ng-model="SearchParam.CreateDateFrom"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>To</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" ng-model="SearchParam.CreateDateTo"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Sales promotion no.</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        ng-model="SearchParam.SalesPromotionId" ng-change="CheckSalesPromotionById()">
+                                    <option ng-repeat="item in SalesPromotionIdList" 
+                                            value="{{item.SalesPromotionId}}">{{item.SalesPromotionId}} - {{item.Suppliers}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-primary btn-sm" id="btnSearch"><strong>Search</strong></button>
+                            </div>
+                        </div>
+                        <div class="col-md-1 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm"
+                                        ng-click="ResetForm()"
+                                        id="btnReset"><strong>Clear</strong></button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-target="#mdExport" data-toggle="modal"
+                                        id="btnExport">
+                                    <i class="fa fa-file-excel-o"></i>&nbsp;<strong>Export</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-green-leaf btn-sm"                                        
+                                        ng-click="ValidateCheck()"
+                                        id="btnSetEntity">
+                                    <strong>Set Entity</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-info btn-sm" 
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-target="#mdSalesPromotion" data-toggle="modal"
+                                        id="btnUploadSalesPromotion"><strong>Upload promotion</strong></button>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="button" title="Delete multi sales promotion"
+                                        ng-click="DeleteSalesPromotionByCheck()"
+                                        class="btn btn-pinterest btn-sm">
+                                    <i class="fa fa-trash-o"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12 pull-right">
+                    @*<simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="SalesPromotionList.length"></simple-pagination>*@
+                    <div class="form-group">
+                        <label>
+                            <span class="label label-info"><strong>{{totalItems}}</strong></span>&nbsp;&nbsp;row(s)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sales Promotion</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblSalesPromotion" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="text-info">
+                                <th class="text-center vmiddle" width="10">
+                                    <input type="checkbox" ng-click="CheckAll()" id="chkAll" ng-model="AllSalesPromotion" />
+                                </th>
+                                <th>Action</th>
+                                <th>Sales Promotion Id</th>
+                                <th>Status</th>                                
+                                <th>Nhà Thuốc</th>
+                                <th>Nhà Thuốc<br />Bệnh Viện</th>
+                                <th>Công ty dược</th>
+                                <th>Product code</th>
+                                <th>Product name</th>
+                                <th>Supplier</th>
+                                <th class="color-01">Start date 01</th>
+                                <th class="color-01">End date 01</th>
+                                <th class="color-02">Start date 02</th>
+                                <th class="color-02">End date 02</th>
+                                <th>Sales Content</th>
+                                <th>Apply Time</th>
+                                <th>Apply Object</th>                                
+                                <th>Apply Area</th>                                
+                                <th>Remark</th>
+                                <th>Create by</th>
+                                <th>Create date</th>
+                                <th>Update by</th>
+                                <th>Update date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (SalesPromotionList)">
+                                <td class="text-center vmiddle">
+                                    <input type="checkbox" id="sp_{{$index}}" />
+                                </td>                                
+                                <td>
+                                    <span>
+                                        <button type="button" title="Update sales promotion" 
+                                                ng-click="GetSalesPromotionDetail(item)" 
+                                                class="btn btn-primary btn-sm"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdEditSalesPromotion">
+                                            <i class="fa fa-pencil-square-o"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" title="Delete sales promotion"
+                                                ng-click="DeleteSalesPromotion(item)"
+                                                class="btn btn-pinterest btn-sm">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td class="text-bold">{{item.SalesPromotionId}}</td>
+                                <td>
+                                    <label ng-if="item.Status == 'ACTIVE'">
+                                        <span class="label label-success"><b>{{item.Status}}</b></span>
+                                    </label>
+                                    <label ng-if="item.Status == 'EXPIRED'">
+                                        <span class="label label-danger"><b>{{item.Status}}</b></span>
+                                    </label>                                    
+                                </td>
+                                
+                                <td class="text-center">
+                                    <small class="label text-center" ng-class="item.NhaThuoc == true ? 'bg-green' : ''">
+                                        {{item.NhaThuoc == true ? 'X' : ''}}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <small class="label text-center" ng-class="item.NhaThuocBV == true ? 'bg-green' : ''">
+                                        {{item.NhaThuocBV == true ? 'X' : ''}}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <small class="label text-center" ng-class="item.CongtyDuoc == true ? 'bg-green' : ''">
+                                        {{item.CongtyDuoc == true ? 'X' : ''}}
+                                    </small>
+                                </td>
+                                <td>{{item.ProductCode}}</td>
+                                <td>{{item.ProductName}}</td>
+                                <td>{{item.Suppliers}}</td>
+                                <td class="color-01">{{item.StartDate}}</td>
+                                <td class="color-01">{{item.EndDate}}</td>
+                                <td class="color-02">{{item.StartDate1}}</td>
+                                <td class="color-02">{{item.EndDate1}}</td>
+                                <td>{{item.SalesContent | cut:true:50:' ...'}}</td>
+                                <td>{{item.ApplyTime}}</td>
+                                <td>{{item.EntityApply | cut:true:50:' ...'}}</td>                                
+                                <td>{{item.ApplyArea}}</td>
+                                <td>{{item.Remark | cut:true:50:' ...'}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.CreateDate}}</td>
+                                <td>{{item.UpdateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Upload data sale inhouse -->
+    <div id="mdSalesPromotion" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload sales promotion</h4>
+                </div>
+                <form name="ProductInfoForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label>File data (xls | xlsx)</label>
+                                            <input type="file" class="form-control" id="txtSalesPromotionFile"
+                                                   upload-file="SalesPromotionFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-green-leaf btn-sm" ng-click="UploadSalesPromotion()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End -->
+
+    <!-- Update sales promotion -->
+    <div id="mdEditSalesPromotion" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 80%; margin: 15px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Sales promotion information</h4>
+                </div>
+                <form name="EditSalesPromotionForm" method="post" ng-submit="UpdateSalesPromotion()">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <!-- Product info -->
+                                <div class="col-md-12">
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Product code</label>
+                                            <input type="text" class="form-control" id="txtProductCode" ng-model="SalesPromotionDto.ProductCode" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Product name</label>
+                                            <input type="text" class="form-control" id="txtProductName" ng-model="SalesPromotionDto.ProductName" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Suppliers</label>
+                                            <input type="text" class="form-control" id="txtSuppliers" ng-model="SalesPromotionDto.Suppliers" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Apply Area</label>
+                                            <input type="text" class="form-control" id="txtSuppliers" ng-model="SalesPromotionDto.ApplyArea" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- end product info -->
+                                <!-- user handle info -->
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Create By</label>
+                                            <input type="text" class="form-control" id="txtCreateBy" 
+                                                   disabled="disabled"
+                                                   ng-model="SalesPromotionDto.CreateBy" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Create date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled" 
+                                                       class="form-control pull-right dateControl" 
+                                                       id="dtCreateDate" ng-model="SalesPromotionDto.CreateDate" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Update By</label>
+                                            <input type="text" class="form-control" disabled="disabled"
+                                                   id="txtUpdateBy" ng-model="SalesPromotionDto.UpdateBy" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Update date</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled" 
+                                                       class="form-control pull-right dateControl" 
+                                                       id="dtUpdateDate" ng-model="SalesPromotionDto.UpdateDate" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- end user info -->
+                                <!-- apply info -->
+                                <div class="col-md-12">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Apply time</label>
+                                            <input type="text" class="form-control" id="txtSuppliers" ng-model="SalesPromotionDto.ApplyTime" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Apply Entities</label>
+                                            <input type="text" class="form-control" id="txtSuppliers" ng-model="SalesPromotionDto.EntityApply" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Start date 01</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled"
+                                                       class="form-control pull-right dateControl"
+                                                       id="dtCreateDate" ng-model="SalesPromotionDto.StartDate" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>End date 01</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled"
+                                                       class="form-control pull-right dateControl"
+                                                       id="dtCreateDate" ng-model="SalesPromotionDto.EndDate" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Start date 02</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled"
+                                                       class="form-control pull-right dateControl"
+                                                       id="dtCreateDate" ng-model="SalesPromotionDto.StartDate1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>End date 01</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" disabled="disabled"
+                                                       class="form-control pull-right dateControl"
+                                                       id="dtCreateDate" ng-model="SalesPromotionDto.EndDate1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="SalesPromotionDto.NhaThuoc" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Nhà Thuốc">Nhà Thuốc</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="SalesPromotionDto.NhaThuocBV" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Nhà Thuốc Bệnh Viện">Nhà Thuốc Bệnh Viện</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="SalesPromotionDto.CongtyDuoc" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Công ty dược">Công ty dược</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- apply info -->
+                                <!-- sale content -->
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Remark</label>
+                                        <input type="text" class="form-control" id="txtRemark" ng-model="SalesPromotionDto.Remark" />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Sale Promotion Content</label>
+                                        <textarea class="textarea" placeholder="Place some text here"
+                                                  ng-model="SalesPromotionDto.SalesContent" id="txtSalesContent"
+                                                  style="width: 100%; height: 150px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+                                    </div>
+                                </div>
+                                <!-- end sale content -->
+                            </div>                            
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-green-leaf btn-sm">
+                                <i class="fa fa-save"></i>&nbsp;<strong>Save</strong>
+                            </button>
+                            <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                <strong>Cancel</strong>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End -->
+    <!-- Modal set entity -->
+    <div id="mdSetEntity" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 15px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Set Entity</h4>
+                </div>
+                <form name="frmSetEntity" method="post">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-3 fix-chk-mg">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="NhaThuoc" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Nhà Thuốc">Nhà Thuốc</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 fix-chk-mg">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="NhaThuocBenhVien" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Nhà Thuốc Bệnh Viện">Nhà Thuốc Bệnh Viện</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 fix-chk-mg">
+                                        <div class="form-group checkbox">
+                                            <label>
+                                                <input type="checkbox" ng-model="CongtyDuoc" />
+                                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                <span class="label label-success">
+                                                    <b data-toggle="tooltip" title="Công ty dược">Công ty dược</b>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-green-leaf btn-sm" ng-click="SetEntity()">
+                                    <i class="fa fa-save"></i>&nbsp;<strong>Save</strong>
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    <strong>Cancel</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End -->
+    <!-- Export modal -->
+    <div id="mdExport" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 40%; margin: 15px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Export</h4>
+                </div>
+                <form name="frmSetEntity" method="post">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-6">
+                                        <div class="form-group form-check-inline">
+                                            <input class="form-check-input" type="radio" name="inlineRadioOptions"
+                                                   ng-model="radioValue" id="rdDoituongapdung" value="1">
+                                            <label class="form-check-label" for="rdDoituongapdung">ĐỐI TƯỢNG ÁP DỤNG</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group form-check-inline">
+                                            <input class="form-check-input" type="radio" 
+                                                   ng-model="radioValue"
+                                                   name="inlineRadioOptions" id="rdTonghop" value="2">
+                                            <label class="form-check-label" for="rdTonghop">TỔNG HỢP</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success btn-sm" ng-click="Export()">
+                                    <i class="fa fa-file-excel-o"></i>&nbsp;<strong>Export</strong>
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    <strong>Cancel</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End Export -->
+</div>
+<script src="/Scripts/Controller/SalesPromotionController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+        $('.select2').select2();
+    })
+</script>

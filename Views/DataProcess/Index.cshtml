@@ -1,0 +1,214 @@
+﻿@{
+    ViewBag.Title = "Data Process";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblDataProcess th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblDataProcess td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.select2').select2();
+    })
+</script>
+<div class="ng-cloak" ng-controller="DataProcessController">
+    <section class="content-header">
+        <h1>
+            Data Process
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Data Process</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form name="formSearch" method="get">
+                    <div class="col-md-12">                        
+                        @if (userDto.UserId.Equals("huynhpa") || userDto.RoleId.Equals("ADMIN"))
+                        {
+                            <div class="col-md-2 pull-right">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-block btn-sm btn-warning"
+                                            data-backdrop="static" data-keyboard="false"
+                                            data-toggle="modal" data-target="#mdDataProcess">
+                                        <i class="fa fa-cloud-upload"></i> Upload Data Process
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-2 pull-right">
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-block btn-sm btn-pink"
+                                            data-backdrop="static" data-keyboard="false"
+                                            data-toggle="modal" data-target="#mdDataInhouse">
+                                        <i class="fa fa-cloud-upload"></i> Upload Inhouse
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </form>                
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdDataProcess" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload</h4>
+                </div>
+                <form name="ProductInfoForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label>File data process (xls | xlsx)</label>
+                                            <input type="file" class="form-control" id="txtDataProcessFile"
+                                                   upload-file="DataProcessFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File Class SFA (xls | xlsx)</label>
+                                            <input type="file" class="form-control" id="txtClassSFAFile"
+                                                   upload-file="ClassSFAFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" ng-click="UploadDataProcess()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Data Process
+                                </button>
+                                <button type="button" class="btn btn-success" ng-click="UploadClassSFA()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Class SFA
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+    <!-- Upload data sale inhouse -->
+    <div id="mdDataInhouse" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload data sale Inhouse</h4>
+                </div>
+                <form name="ProductInfoForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label>File data sales Inhouse (xls | xlsx)</label>
+                                            <input type="file" class="form-control" id="txtDataInhouseFile"
+                                                   upload-file="DataInhouseFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-green-leaf" ng-click="UploadDataInhouse()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Data Inhouse
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End -->
+</div>
+<script src="/Scripts/Controller/DataProcessController.js"></script>
+
+
+

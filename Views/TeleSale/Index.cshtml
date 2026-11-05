@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "Tele sale";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblTeleSale th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblTeleSale td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+</style>
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+$(function () {
+    //Date picker
+    $('.dateControl').datepicker({
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        todayHighlight: true,
+    });
+    $('.select2').select2();
+})
+</script>
+<div class="ng-cloak" ng-controller="TeleSaleController">
+    <section class="content-header">
+        <h1>
+            Search Call
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Search Call</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+               
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Call List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="~/Scripts/Controller/TeleSaleController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        $('.dateControl').datepicker('setDate', currentDate);
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false
+        })
+    })
+</script>

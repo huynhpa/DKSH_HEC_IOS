@@ -1,0 +1,367 @@
+﻿@{
+    ViewBag.Title = "Campaign Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblServiceType th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblServiceType td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #0FAAE8;
+    }
+</style>
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<div class="ng-cloak" ng-controller="CampaignController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <section class="content-header">
+        <h1>
+            Campaign Management
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li>Setup Survey</li>
+            <li>Campaign Management</li>
+            <li class="active">Campaign</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- ROLE -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <a href="@Url.Action("Index", "Question")" class="btn btn-link text-blue">Question Management</a>
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="Search()" name="formSearch" method="get">
+                    <div class="col-md-12">                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Project</label>
+                                <select class="form-control select2" style="width: 100%;" 
+                                        data-placeholder="Select a project"
+                                        ng-model="SearchParam.ProjectID">
+                                    <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                                </select>
+                            </div>
+                        </div>                    
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Service Name</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.ServiceName" />
+                            </div>
+                        </div>       
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        data-placeholder="Select status"
+                                        ng-model="SearchParam.Status">
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    <strong>Search</strong>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Reset()">
+                                    <strong>Clear</strong>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm" ng-click="ClearModel()"
+                                        data-toggle="modal" data-target="#mdCampaign"
+                                        data-keyboard="false" data-backdrop="static">
+                                    <strong>New Campaign</strong>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Campaigns</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListServiceType.length"></simple-pagination>
+                    <br />
+                    <table id="tblServiceType" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-blue-sky">
+                                <th>Action</th>
+                                <th>Service Name</th>
+                                <th>Service Code</th>
+                                <th>Project</th>
+                                <th>Status</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Created Date</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListServiceType | filter : {ServiceName: SearchParam.ServiceName} | limitTo:settings.pageLimit:settings.offset)">
+                                <td class="text-center">
+                                    <span ng-if="UserSession.UserName == item.CreatedBy || (UserSession.IsAdmin != null && UserSession.IsAdmin != '')">
+                                        <button type="button" title="Update" ng-click="CampaignDetail(item)" class="btn btn-success btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <a class="btn btn-info btn-sm" ng-href="@Url.Action("Index", "Question")?CampaignID={{item.ID}}"
+                                           data-toggle="modal" title="View Question Detail">
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                    </span>
+                                    <span ng-if="UserSession.UserName == item.CreatedBy || (UserSession.IsAdmin != null && UserSession.IsAdmin != '')">
+                                        <button type="button" title="Delete" ng-click="DeleteCampaign(item)" class="btn btn-pinterest btn-sm"
+                                                data-toggle="modal">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td>{{item.ServiceName}}</td>
+                                <td>{{item.ServiceCode}}</td>
+                                <td>{{item.ProjectName}}</td>
+                                <td class="text-center">
+                                    <span ng-if="item.IsActive == '1'">
+                                        <small class="label label-success">
+                                            <b>Active</b>
+                                        </small>
+                                    </span>
+                                    <span ng-if="item.IsActive == '0'">
+                                        <small class="label label-danger">
+                                            <b>Inactive</b>
+                                        </small>
+                                    </span>
+                                </td>
+                                <td>{{item.StartDate}}</td>
+                                <td>{{item.EndDate}}</td>
+                                <td>{{item.CreatedDate}}</td>
+                                <td>{{item.CreatedBy}}</td>                                
+                            </tr>
+                        </tbody>
+                    </table>
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListServiceType.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+        <!-- modal -->
+        <div id="mdCampaign" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 80%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header bg-blue-active">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Campaign Information</h4>
+                    </div>
+                    <form name="CampaignForm" method="post" ng-submit="SaveCampaign()">
+                        <div class="modal-body fix-modal-body">
+                            <div class="box box-danger">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    @*<div class="col-md-12" ng-show="isUpdate == true">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Project Name</label>
+                                                <input type="text" class="form-control" ng-disabled="true" ng-model="ServiceTypeDto.ProjectName" />
+                                            </div>                                            
+                                        </div>
+                                    </div>*@
+                                    <div class="col-md-12">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="text-red">Campaign name</label>
+                                                <input type="text" class="form-control" id="txtCampaignName" 
+                                                       ng-model="ServiceTypeDto.ServiceName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Project</label>                                                
+                                                <select class="form-control select2" style="width: 100%;"
+                                                        multiple="multiple"
+                                                        data-placeholder="Select one or multiple projects"
+                                                        ng-model="ServiceTypeDto.ProjectIDList">
+                                                    <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 fix-chk-mg">
+                                            <div class="form-group">
+                                                <label class="radio-inline text-green">
+                                                    <input type="radio" name="optionsRadios" id="optionsRadios1"
+                                                           ng-model="ServiceTypeDto.IsActive" ng-value="true" checked />
+                                                    <strong>Active</strong>
+                                                </label>
+                                                <label class="radio-inline text-red">
+                                                    <input type="radio" name="optionsRadios" id="optionsRadios2"
+                                                           ng-model="ServiceTypeDto.IsActive" ng-value="false" />
+                                                    <strong>Inactive</strong>
+                                                </label>                                           
+                                            </div>
+                                        </div>                                        
+                                    </div>                                    
+                                    @*<div class="col-md-12">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Header</label>
+                                                <textarea class="editor" id="txtStartAlert" ng-model="ServiceTypeDto.StartAlert"
+                                                          placeholder="Header"
+                                                          style="width:100%;"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                    @*<div class="col-md-12">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Footer</label>
+                                                <textarea class="editor" id="txtEndAlert" ng-model="ServiceTypeDto.EndAlert"
+                                                          placeholder="Footer"
+                                                          style="width:100%;"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                </div>                                
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn bg-green-active">
+                                <i class="fa fa-save"></i>&nbsp;Save
+                            </button>
+                            <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- end modal -->
+    </section>
+</div>
+<script src="~/Scripts/Controller/CampaignController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    })
+</script>

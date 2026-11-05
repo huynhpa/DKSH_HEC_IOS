@@ -1,0 +1,308 @@
+﻿@model DKSHApplication.DTO.FileStoreDto  
+@{
+    ViewBag.Title = "Raise Issue";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="~/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .fix-height-30 {
+        height: 30px;
+        vertical-align: middle;
+    }
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    th,td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #tblIssue th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #tblIssue td {
+        vertical-align: middle;
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 700px;
+    }
+    .dateControl { } 
+</style>
+<div class="ng-cloak" ng-controller="RaiseIssueController">
+<section class="content-header">
+    <h1>
+        Issue Management
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">Issue Management</li>
+    </ol>
+</section>
+<section class="content">
+    <!-- ROLE -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Ticket No.</label>
+                        <select class="form-control select2" style="width: 100%;" ng-model="SearchModel.RequestId" ng-change="SetPaging()">
+                            @foreach (var item in ViewBag.TicketNoList)
+                            {
+                                <option value="@item.TicketId">@item.TicketName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control"
+                                ng-model="SearchModel.Title" ng-change="SetPaging()" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Issue No</label>
+                        <input type="text" class="form-control"
+                               ng-model="SearchModel.IssueNo" ng-change="SetPaging()" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Issue Status</label>
+                        <select class="form-control select2" style="width: 100%;" ng-model="SearchModel.IssueStatus">
+                            <option ng-repeat="item in IssueStatusList" value="{{item.key}}">{{item.value}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3" style="margin-top: 22px;">
+                    <div class="form-group checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="SearchModel.IsDelete" />
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="label label-danger"><b>IS DELETE</b></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-success" ng-click="SearchIssue()">
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-pinterest" ng-click="ClearForm()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-right">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-warning" id="btnAdd" ng-click="ReportBug()"
+                                data-backdrop="static" data-keyboard="false"
+                                data-toggle="modal" data-target="#mdIssue">
+                            <span><i class="fa fa-bug"></i></span>
+                            Report Bug
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Issues List</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <simple-pagination current-page="settings.currentPage"
+                                    offset="settings.offset"
+                                    page-limit="settings.pageLimit"
+                                    page-limits="settings.pageLimits"
+                                    on-update="callback()"
+                                    total="ListIssue.length"></simple-pagination>
+                <br />
+                <table id="tblIssue" class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Issue No</th>
+                            <th>Ticket No.</th>
+                            <th>Title</th>
+                            <th>Issue Status</th>
+                            <th>Percentage (%)</th>
+                            <th>Is Delete</th>                            
+                            <th>Create By</th>
+                            <th>Create Date</th>
+                            <th>Update By</th>
+                            <th>Update Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListIssue | filter : { TicketNo: SearchModel.TicketNo,
+                                                                                    Title: SearchModel.Title,
+                                                                                    IssueNo: SearchModel.IssueNo }
+                                                                    | limitTo:settings.pageLimit:settings.offset)">
+                            <td>
+                                <span><button type="button" class="btn btn-primary" data-toggle="modal" ng-click="GetIssueDetail(item)" data-target="#mdIssue"><i class="fa fa-edit"></i></button></span>
+                                <span><button type="button" class="btn btn-pinterest" data-toggle="modal" ng-click="DelIssue(item)"><i class="fa fa-trash"></i></button></span>
+                            </td>
+                            <td class="text-bold">{{item.IssueNo}}</td>
+                            <td>{{item.TicketNo}}</td>
+                            <td>{{item.Title | uppercase}}</td>
+                            <td class="text-bold text-center text-green">{{item.IssueStatus}}</td>
+                            <td class="text-right">{{item.Percentage}}</td>
+                            <td class="text-center"><small class="label text-center" ng-class="item.IsDelete == true ? 'bg-red' : 'bg-green'">{{item.IsDelete == true ? 'YES' : 'NO'}}</small></td>                            
+                            <td>{{item.CreateBy}}</td>
+                            <td>{{item.CreateDate}}</td>
+                            <td>{{item.UpdateBy}}</td>
+                            <td>{{item.UpdateDate}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="mdIssue" class="modal fade" role="dialog">
+<div class="modal-dialog" style="width: 85%; margin: 40px auto;">
+<!-- Modal content-->
+<div class="modal-content">
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4 class="modal-title text-red">Issue Information</h4>
+</div>
+<form method="post" name="IssueForm" ng-submit="Save()">
+    <div class="modal-body">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <div class="box-body fix-modal-body">
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group" ng-if="!isUpdate">
+                            <label>Ticket No.</label>
+                            <select class="form-control select2" style="width: 100%;"
+                                    ng-model="IssueModel.RequestId"
+                                    ng-change="GetIssueNo()">
+                                <option ng-repeat="item in TicketNoList" value="{{item.TicketId}}">{{item.TicketName}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group" ng-if="isUpdate">
+                            <label>Ticket No.</label>
+                            <input disabled="disabled"
+                                    type="text" class="form-control"
+                                    ng-model="IssueModel.TicketNo" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" ng-model="IssueModel.Title" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Issue No.</label>
+                            <input type="text" class="form-control" disabled="disabled" ng-model="IssueModel.IssueNo" />
+                        </div>
+                    </div>                    
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Issue Status</label>
+                            <select class="form-control select2" style="width: 100%;"
+                                    ng-model="IssueModel.IssueStatus">
+                                <option ng-repeat="item in IssueStatusList" value="{{item.key}}">{{item.value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Percentage (%)</label>
+                            <input type="number" class="form-control" ng-model="IssueModel.Percentage" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group checkbox" style="margin-top: 30px">
+                            <label>
+                                <input type="checkbox" ng-model="IssueModel.IsDelete" />
+                                <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                <span class="label label-danger"><b>IS DELETE</b></span>
+                            </label>
+                        </div>                        
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea type="text" class="editor" id="txtDescription" ng-model="IssueModel.Description"
+                                        placeholder="Place description about your request here..."
+                                        style="width:100%;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-info">Submit</button>
+        <button type="button" class="btn btn-pinterest" data-dismiss="modal" ng-click="Cancel()">Cancel</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+
+</div>
+<script src="/Scripts/Controller/RaiseIssueController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>

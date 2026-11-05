@@ -1,0 +1,470 @@
+﻿@{
+    ViewBag.Title = "Selling Quota";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+
+<style type="text/css">
+    .dateControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+    }
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tb_SellingQuota th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tb_SellingQuota td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+    .color-col-contract {
+        background-color: #F9D329;
+    }
+</style>
+<div class="ng-cloak" ng-controller="SellingQuotaController">
+    <section class="content-header">
+        <h1>
+            Selling Quota
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Selling Quota</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+            <form ng-submit="SearchSellingQuota()" name="formSearch" method="get">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Cust Code</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.CustCode" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>CustName</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.CustName" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>District</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.District" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Update:From</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl"
+                                        id="dtUpdateDateFrom" ng-model="SearchParam.UpdateDateFrom"
+                                        data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>To (dd-mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl"
+                                        id="dtUpdateDateTo" ng-model="SearchParam.UpdateDateTo"
+                                        data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Contract Status</label>
+                            <select class="form-control select2" style="width: 100%;" id="ddlContractStatus"
+                                    ng-model="SearchParam.Contract">
+                                <option value="UNEXPIRED">Còn hạn</option>
+                                <option value="EXPIRED">Hết hạn</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Quota Status</label>
+                            <select class="form-control select2" style="width: 100%;" id="ddlQuotaStatus"
+                                    ng-model="SearchParam.Quota">
+                                <option value="UNEXPIRED">Còn hạn</option>
+                                <option value="EXPIRED">Hết hạn</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>SAP Contract ID</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.SAPContractID" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Product Code</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.ProductCode" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.ProductName" />
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-block btn-info btn-sm">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="ClearSearchParam()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    @*<div class="col-md-2">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-primary btn-sm"
+                                    data-backdrop="static" data-keyboard="false"
+                                    data-toggle="modal" data-target="#mdFetchEmail">
+                                Fetch Email
+                            </button>
+                        </div>
+                    </div>*@
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-warning btn-sm" title="Upload selling quota"
+                                    data-backdrop="static" data-keyboard="false"
+                                    data-toggle="modal" data-target="#mdMedical">
+                                <i class="fa fa-cloud-upload"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-success btn-sm" ng-click="ExportResult()">
+                                <i class="fa fa-file-excel-o"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <div class="form-group pull-left">
+                        <label class="text-red">Lastest update date: {{LastUpdateDate}}</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group pull-left">
+                        <label class="text-red">Update by: {{UpdateBy}}</label>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group pull-right">
+                        <simple-pagination current-page="settings.currentPage"
+                                           offset="settings.offset"
+                                           page-limit="settings.pageLimit"
+                                           page-limits="settings.pageLimits"
+                                           on-update="callback()"
+                                           total="SellingQuotaList.length"></simple-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        </div>
+        <!-- SELLING QUOTA LIST -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Selling Quota List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive col-md-12">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="color-col-contract">Contract Days</th>
+                                @*<th>Quota Days</th>*@
+                                @*<th>Contract No</th>*@
+                                <th class="color-col-contract">Contract Valid On</th>
+                                <th class="color-col-contract">Contract Valid To</th>
+                                <th class="color-col-contract">SAP Contract ID</th>
+                                <th class="color-col-contract">Quota Box</th>
+                                <th>CustCode</th>
+                                <th>CustName</th>
+                                @*<th>Address</th>*@
+                                <th>District</th>
+                                @*<th>Province</th>
+                                <th>Region</th>*@
+                                <th>Client</th>
+                                <th>Product Code</th>
+                                <th>Product Name</th>
+                                @*<th>Quota Valid On</th>
+                                <th>Quota Valid To</th>*@
+                                @*<th>Sale Org</th>*@
+                                <th>DC</th>
+                                <th>Remark</th>
+                                @*<th>Update By</th>
+                                <th>Update Date</th>*@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (SellingQuotaList | limitTo:settings.pageLimit:settings.offset)"
+                                data-toggle="tooltip" title="{{item.ContractStatus}}| {{item.SAPContractID}} | {{item.CustName}}">
+                                <td class="text-center color-col-contract">
+                                    <label ng-if="item.ContractStatus <= 0">
+                                        <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                    </label>
+                                    <label ng-if="item.ContractStatus > 0 && item.ContractStatus <= 60">
+                                        <span class="label label-warning">SẮP HẾT HẠN</span>
+                                        <span class="label label-warning"><b>{{item.ContractStatus}}</b></span>
+                                    </label>
+                                    <label ng-if="item.ContractStatus > 60">
+                                        <span class="label label-success"><b>{{item.ContractStatus}}</b></span>
+                                    </label>
+                                </td>
+                                @*<td class="text-center">
+                                    <label ng-if="item.QuotaStatus <= 0">
+                                        <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                    </label>
+                                    <label ng-if="item.QuotaStatus > 0 && item.QuotaStatus <= 60">
+                                        <span class="label label-warning">SẮP HẾT HẠN</span>
+                                        <span class="label label-warning"><b>{{item.QuotaStatus}}</b></span>
+                                    </label>
+                                    <label ng-if="item.QuotaStatus > 60">
+                                        <span class="label label-success"><b>{{item.QuotaStatus}}</b></span>
+                                    </label>
+                                </td>*@
+                                @*<td>{{item.ContractNo}}</td>*@
+                                <td class="color-col-contract">{{item.ContractValidOn}}</td>
+                                <td class="color-col-contract">{{item.ContractValidTo}}</td>
+                                <td class="color-col-contract">{{item.SAPContractID}}</td>
+                                <td class="color-col-contract text-right">{{item.QuotaBox | number}}</td>
+                                <td>{{item.CustCode}}</td>
+                                <td>{{item.CustName}}</td>
+                                @*<td>{{item.AddressLocation}}</td>*@
+                                <td>{{item.District}}</td>
+                                @*<td>{{item.Province}}</td>
+                                <td>{{item.Region}}</td>*@
+                                <td>{{item.Client}}</td>
+                                <td>{{item.ProductCode}}</td>
+                                <td>{{item.ProductName}}</td>
+                                @*<td>{{item.QuotaValidOn}}</td>
+                                <td>{{item.QuotaValidTo}}</td>
+                                <td>{{item.SaleOrg}}</td>*@
+                                <td>{{item.DC}}</td>
+                                <td>{{item.Remark}}</td>
+                                @*<td>{{item.UpdateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>*@
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group pull-right">
+                        <simple-pagination current-page="settings.currentPage"
+                                           offset="settings.offset"
+                                           page-limit="settings.pageLimit"
+                                           page-limits="settings.pageLimits"
+                                           on-update="callback()"
+                                           total="SellingQuotaList.length"></simple-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- SELLING QUOTA LIST -->
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdMedical" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload data</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Selling Quota</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtSellingQuota"
+                                                   upload-file="SellingQuotaFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Update Date (dd-mm-yyyy)</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control dateControl"
+                                                       id="dtUpdateDate" ng-model="SellingQuotaModel.UpdateDate"
+                                                       data-format="dd-mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info btn-sm" ng-click="UploadSellingQuota()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload selling quota
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+
+    <!-- FETCH EMAIL MODAL -->
+    <div id="mdFetchEmail" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info"></h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>From email</label>
+                                            <input type="email" class="form-control" id="txtEmail" ng-model="ReadMailDto.Email" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Password</label>
+                                            <input type="password" class="form-control" id="txtPassword" ng-model="ReadMailDto.Password" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Email Discover</label>
+                                            <input type="email" class="form-control" id="txtEmailDiscover" ng-model="ReadMailDto.EmailDiscover" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info btn-sm" ng-click="FetchingEmail()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Fetching
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END FETCH EMAIL MODAL -->
+</div>
+<script src="/Scripts/Controller/SellingQuotaController.js"></script>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+    });
+</script>

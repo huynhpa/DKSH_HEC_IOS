@@ -1,0 +1,261 @@
+﻿@{
+    ViewBag.Title = "Survey History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+
+    .dateControl {
+    }
+
+    .monthControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblQuestionnaire th, #tblSurverList th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblQuestionnaire td, #tblSurverList td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-1 {
+        background-color: #7CD8FD;
+    }
+
+    .color-2 {
+        background-color: #85E306;
+    }
+
+    .color-3 {
+        background-color: #F0D10D;
+    }
+
+    .questionnaire {
+        background-color: #A1E1FA;
+        vertical-align: middle;
+    }
+
+    .total {
+        background-color: #ED3309;
+        color: white;
+    }
+
+    .col-remark {
+        background-color: #9FD2F9;
+    }
+</style>
+<div class="ng-cloak" ng-controller="CustomerSurveyController">
+    <section class="content-header">
+        <h1>
+            SURVEY HISTORY
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pharmacy</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- Customer information -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Survey History</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <form method="get" name="SurveyHistoryFrm" ng-submit="GetSurveyHistory()">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Survey From</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" id="dtToDate" ng-model="SurveyHistoryParam.SurveyFromDate"
+                                           data-format="dd-mm-yyyy" />
+                                </div>                                
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>To Date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl" id="dtToDate" ng-model="SurveyHistoryParam.SurveyToDate"
+                                           data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Customer code</label>
+                                <input type="text" class="form-control"
+                                       ng-model="SurveyHistoryParam.CustCode" id="txtCustCode" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Customer name</label>
+                                <input type="text" class="form-control" ng-model="SurveyHistoryParam.CustName" id="txtCustName" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Tel</label>
+                                <input type="text" class="form-control" ng-model="SurveyHistoryParam.Tel" id="txtTel" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Agent name</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlGroup" ng-model="CustomerSurveyModel.UserSurvey">
+                                    <option ng-repeat="item in iMindAgents" value="{{item.user_id}}">{{item.user_id}}-{{item.agent_name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>User group</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlUserGroup" ng-model="SurveyHistoryParam.UserGroup">
+                                    <option ng-repeat="item in UserGroups" value="{{item.groupcode}}">{{item.groupname}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button class="btn btn-success" type="submit">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button class="btn btn-pinterest" type="button" ng-click="ClearSearch()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <a href="@Url.Action("Index", "CustomerSurvey")" class="btn btn-primary btn-block">
+                                    Customer Survey
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button class="btn btn-success" type="button" ng-click="CustomerSurveyReport()">
+                                    <i class="fa fa-file-excel-o"></i> Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>                    
+                </form>
+                <div class="col-md-12">
+                    <div class="col-md-6 pull-left">
+                        <div class="form-group">
+                            <simple-pagination current-page="settings.currentPage"
+                                               offset="settings.offset"
+                                               page-limit="settings.pageLimit"
+                                               page-limits="settings.pageLimits"
+                                               on-update="callback()"
+                                               total="SurveyHistory.length"></simple-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Customer information -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">SURVEY HISTORY</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblSurverList" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Survey Date</th>
+                                <th>Cust Code</th>
+                                <th>Cust Name</th>
+                                <th>Tel</th>
+                                <th>Total mark</th>
+                                <th>User survey</th>
+                                <th>Team</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (SurveyHistory)">
+                                <td>{{item.SurveyDate}}</td>
+                                <td>{{item.CustCode}}</td>
+                                <td>{{item.CustName}}</td>
+                                <td>{{item.Tel}}</td>
+                                <td class="text-right">{{item.TotalMark | number}}</td>
+                                <td>{{item.UserSurvey}}</td>
+                                <td>{{item.UserGroup}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/Scripts/Controller/CustomerSurveyController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        $('.dateControl').datepicker('setDate', today);
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>
+
+

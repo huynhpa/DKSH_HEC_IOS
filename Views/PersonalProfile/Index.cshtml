@@ -1,0 +1,203 @@
+﻿
+@{
+    ViewBag.Title = "Personal Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .dateControl {
+    }
+</style>
+<div>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            User Profile
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Personal profile</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="row">
+            <div class="col-md-3">
+                <!-- Profile Image -->
+                <div class="box box-primary">
+                    <div class="box-body box-profile">
+                        @if (ViewBag.Personal.ImagePath != null)
+                        {
+                            <img class="profile-user-img img-responsive img-circle"
+                                 style="width: 250px !important; height: 220px !important;"
+                                 src="~/Images/MemberPictures/@ViewBag.Personal.ImagePath" alt="@ViewBag.Personal.Fullname" />
+                        }
+                        else
+                        {
+                            <img src="~/Images/user_icon.png" alt="user icon" class="profile-user-img img-responsive img-circle"
+                                 style="width: 250px !important; height: 220px !important;" />
+                        }
+                        
+                        
+                        <h3 class="profile-username text-center">@ViewBag.Personal.Fullname</h3>
+
+                        <p class="text-muted text-center">@ViewBag.Personal.JobTitle</p>
+
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+                <!-- About Me Box -->
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">About Me</h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <strong><i class="fa fa-book margin-r-5"></i>Education</strong>
+                        <p class="text-muted">
+                            @ViewBag.Personal.Education
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-map-marker margin-r-5"></i>Location</strong>
+                        <p class="text-muted">@ViewBag.Personal.Location</p>
+                        <hr>
+                        <strong><i class="fa fa-pencil margin-r-5"></i>Skills</strong>
+                        <p>
+                            @ViewBag.Personal.Skills
+                        </p>
+                        <hr>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-9">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="active tab-pane" id="settings">
+                            <form class="form-horizontal" name="ProfileForm" method="post" novalidate>
+                                <input type="hidden" value="" />
+                                <div class="form-group">
+                                    <label for="inputName" class="col-sm-2 control-label ">Full Name</label>
+                                    <div class="col-sm-10">
+                                        <input type="email" class="form-control" id="inputName"
+                                               placeholder="Full Name" maxlength="150" value="@ViewBag.Personal.Fullname" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputName" class="col-sm-2 control-label">User Name</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" id="inputName"
+                                               placeholder="Name" maxlength="100" value="@ViewBag.Personal.UserName">
+                                    </div>
+                                    <label for="inputFacebook" class="col-sm-2 control-label">Facebook</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" id="inputFacebook"
+                                               placeholder="Facebook account" maxlength="100" value="@ViewBag.Personal.Facebook">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label ">Email</label>
+                                    <div class="col-sm-4">
+                                        <input type="email" maxlength="150" class="form-control" id="inputEmail"
+                                               placeholder="Email" value="@ViewBag.Personal.Email" />
+                                    </div>
+                                    <label for="inputPhone" class="col-sm-2 control-label">Phone number</label>
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" id="inputPhone" maxlength="15"
+                                               placeholder="Cell phone" value="@ViewBag.Personal.Phone" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputJobTitle" class="col-sm-2 control-label ">Team</label>
+
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" id="inputTeam" maxlength="15"
+                                               placeholder="Cell phone" value="@ViewBag.Personal.Team" />
+                                    </div>
+                                    <label for="inputJoinDate" class="col-sm-2 control-label">Join date</label>
+                                    <div class="col-sm-4 input-group date" style="padding :0 15px !important">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control dateControl"
+                                               data-format="dd-mm-yyyy" value="@ViewBag.Personal.JoinDate">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputJobTitle" class="col-sm-2 control-label ">Job Title</label>
+                                    <div class="col-sm-10">
+                                        <input class="form-control" id="inputJobTitle"
+                                               placeholder="Job Title" value="@ViewBag.Personal.JobTitle" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label">Location</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputLocation" maxlength="200"
+                                               placeholder="Location" value="@ViewBag.Personal.Location" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label">Education</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputEducation" maxlength="200"
+                                               placeholder="Educations" value="@ViewBag.Personal.Education" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputExperience" class="col-sm-2 control-label">Experience</label>
+                                    <div class="col-sm-10">
+                                        <textarea class="form-control" id="inputExperience"
+                                                  placeholder="Experience" value="@ViewBag.Personal.Experience"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">Skills</label>
+
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="inputSkills"
+                                               placeholder="Skills" value="@ViewBag.Personal.Skills">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="inputIsManager" class="col-sm-2 control-label">Is Manager</label>
+                                    <div class="col-sm-10 form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" value="@ViewBag.Personal.IsManager" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>MANAGER</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </section>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+    })
+</script>

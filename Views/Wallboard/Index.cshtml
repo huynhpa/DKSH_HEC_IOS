@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "Wallboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblTelesales th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblTelesales td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+    .size-15 {
+        font-size: 14px;
+    }
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+    .h1-100 {
+        font-size: 100px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #0FAAE8;
+    }
+</style>
+
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+
+<div class="ng-cloak" ng-controller="WallboardController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <section class="content-header">
+        <h1>
+            Wallboard <strong class="text-bold text-green">{{pdate}}&nbsp;{{ptime}}</strong>
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Wallboard</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="row" id="contCallPerformance" ng-show="IsViewCall">
+            <section class="col-md-4 connectedSortable">
+                <!-- CAMPAIGN -->
+                <div class="box box-warning">
+                    <div class="box-header bg-orange-active with-border text-center">
+                        <h1 class="box-title text-uppercase" style="font-size:40px">Telesales</h1>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive no-padding">
+                            <table id="tblTelesales" class="table table-bordered table-striped">
+                                <tr class="bg-orange-active">
+                                    <th class="text-center text-uppercase" colspan="2"><h4>Total calls</h4></th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="text-center text-bold"><h1 class="h1-100">{{WallboardDto.TeleSale.TotalCall}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>Answered</h4></th>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>No Answer</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.Answered}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.NoAnswered}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>Busy</h4></th>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>Failed</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.Busy}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.Failed}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>Longest Talk Time</h4></th>
+                                    <th class="text-center text-uppercase bg-orange-active"><h4>AVG Talk Time</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.LongestTalkTime}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleSale.AVGTalkTime}}</h1></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="col-md-4 connectedSortable">
+                <!-- CAMPAIGN -->
+                <div class="box box-success">
+                    <div class="box-header bg-green-gradient with-border text-center">
+                        <h1 class="box-title text-uppercase" style="font-size:40px">Tele CSO</h1>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive no-padding">
+                            <table id="tblCSO" class="table table-bordered table-striped">
+                                <tr class="bg-green-gradient">
+                                    <th class="text-center text-uppercase" colspan="2"><h4>Total calls</h4></th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="text-center text-bold"><h1 class="h1-100">{{WallboardDto.TeleCSO.TotalCall}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>Answered</h4></th>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>No Answer</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.Answered}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.NoAnswered}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>Busy</h4></th>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>Failed</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.Busy}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.Failed}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>Longest Talk Time</h4></th>
+                                    <th class="text-center text-uppercase bg-green-gradient"><h4>AVG Talk Time</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.LongestTalkTime}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.TeleCSO.AVGTalkTime}}</h1></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="col-md-4 connectedSortable">
+                <div class="box box-primary">
+                    <div class="box-header bg-aqua-active with-border text-center">
+                        <h1 class="box-title text-uppercase" style="font-size:40px">VAS Campaign</h1>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive no-padding">
+                            <table id="tblVAS" class="table table-bordered table-striped">
+                                <tr class="bg-aqua-active">
+                                    <th class="text-center text-uppercase" colspan="2"><h4>Total calls</h4></th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="text-center text-bold"><h1 class="h1-100">{{WallboardDto.VAS.TotalCall}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>Successful Calls</h4></th>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>Unsuccessful Calls</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.SuccessfulCalls}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.UnsuccessfulCalls}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>Busy</h4></th>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>Failed</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.Busy}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.Failed}}</h1></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>Longest Talk Time</h4></th>
+                                    <th class="text-center text-uppercase bg-aqua-active"><h4>AVG Talk Time</h4></th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.LongestTalkTime}}</h1></td>
+                                    <td class="text-center text-bold"><h1>{{WallboardDto.VAS.AVGTalkTime}}</h1></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                </section>
+        </div>
+        <div class="row" id="contDailyPerformance" ng-show="IsViewPerformance">
+            <section class="col-md-7 connectedSortable">
+                <div class="box box-success">
+                    <div class="box-header bg-green-gradient with-border text-center">
+                        <h3 class="box-title text-uppercase">Daily call &amp; MTD Sales performance</h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive no-padding">
+                            <table id="tblDailyCall" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="bg-green-gradient">
+                                        <th class="text-center text-uppercase">Agent Name</th>
+                                        <th class="text-center text-uppercase">Team</th>
+                                        <th class="text-center text-uppercase">Total Call</th>
+                                        <th class="text-center text-uppercase">Run rate</th>
+                                        <th class="text-center text-uppercase">Achieved vs <br />40 call/day</th>
+                                        <th class="text-center text-uppercase">MTD <br />Sales Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item in filterData = (WallboardDto.AchivedPerformance)" ng-class-odd="'tr_odd'" ng-class-even="">
+                                        <td><h4>{{item.SalemanCode}}-{{item.AgentName}}</h4></td>
+                                        <td><h4>{{item.Team}}</h4></td>
+                                        <td class="text-right"><h4>{{item.TotalCall | number}}</h4></td>
+                                        <td class="text-right"><h4>{{item.Runrate | number}}&nbsp;%</h4></td>
+                                        <td class="text-right"><h4>{{item.AchievedCallPerDay | number}}&nbsp;%</h4></td>
+                                        <td class="text-right"><h4>{{item.MTDSales | number}}</h4></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="col-md-5 connectedSortable">
+                <div class="box box-default">
+                    <div class="box-header bg-aqua-active with-border text-center">
+                        <h3 class="box-title text-uppercase">Call by VAS Campaign</h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive no-padding">
+                            <table id="tblVASCampaign" class="table table-bordered table-striped">
+                                <thead>
+                                    <tr class="bg-aqua-active">
+                                        <th class="text-center">CAMPAIGN NAME</th>
+                                        <th class="text-center">SUCCESSFUL CALLS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="item_1 in filterData = (WallboardDto.FocusCampaign)" ng-class-odd="'tr_odd'" ng-class-even="">
+                                        <td class="text-bold text-uppercase"><h4>{{item_1.CampaignName}}</h4></td>
+                                        <td class="text-right text-bold"><h4>{{item_1.SuccessfulCall}}</h4></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- MTD Sales Performance -->
+    </section>
+</div>
+<script src="~/Scripts/Controller/WallboardController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+        $('.dateControl').datepicker('setDate', currentDate);
+
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            minViewMode: "months",
+            orientation: 'bottom',
+            useCurrent: true,
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        })
+    })
+</script>
+

@@ -1,0 +1,1109 @@
+﻿@{
+    ViewBag.Title = "CDI Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+    var CERTIFICATION_INVALID = ViewBag.CERTIFICATION_INVALID;
+}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<style type="text/css">
+    .bg-viber {
+        background-color: #AF09A1;
+        color: #FFFFFF;
+    }
+    #tblLicensesExpired td, #tblLicensesLack td {
+        vertical-align: middle;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .bg-title-green {
+        background-color: #109618;
+        color: #FFFFFF;
+    }
+    .bg-title-red {
+        background-color: #DC3912;
+        color: #FFFFFF;
+    }
+    .text-white {
+        color: #FFFFFF;
+    }
+    .pharmacy {
+        color: rgb(51, 102, 204);
+    }
+    .diagnostics {
+        color: rgb(220, 57, 18);
+    }
+    .others {
+        color: rgb(255, 153, 0);
+    }
+    .hospitaldrClinic {
+        color: rgb(16, 150, 24);
+    }
+    .odd {
+        background-color: #BDF4FE;
+    }
+    .col-total {
+        background-color: #F7D52B;
+    }
+    .yearControl {}
+    .monthControl {
+    }
+</style>
+
+<div class="ng-cloak" ng-controller="CDIDashboardController">
+<section class="content-header">
+    <h1>CDI Dashboard   
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">CDI Summary</li>
+    </ol>
+</section>
+<section class="content">
+@if (userSession != null && (userSession.Team.Equals("CDI") || userSession.RoleId.Equals("ADMIN")))
+{
+<div class="row">
+    <div class="col-md-1 col-sm-4 col-xs-12">
+        <p><a href="@Url.Action("Index", "CDIManagement")" class="btn btn-sm btn-primary btn-block">Sold to</a></p>
+    </div>
+    <div class="col-md-1 col-sm-4 col-xs-12">
+        <p><a href="@Url.Action("New", "CDIManagement")" class="btn btn-sm btn-success btn-block">New</a></p>
+    </div>
+    <div class="col-md-1 col-sm-4 col-xs-12">
+        <p><a href="@Url.Action("Report", "CDIManagement")" class="btn btn-sm btn-info btn-block">Report</a></p>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-12">
+        <p><a href="@Url.Action("ProcessAndBackup", "CDIManagement")" class="btn btn-sm btn-warning btn-block">Process &amp; Back Up</a></p>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-12">
+        <p><a href="@Url.Action("ShipTo", "CDIManagement")" class="btn btn-sm btn-success btn-block"><i class="fa fa-ambulance"></i> Ship To</a></p>
+    </div>
+</div>
+}
+<div class="row">
+    <div class="col-lg-3 col-xs-6">
+        <div class="small-box bg-green">
+            <div class="inner">
+                <h3>{{LicensesSummary.TotalCustomerActive | number}}</h3>
+                <p>Total customers active</p>
+            </div>
+            <div class="icon">
+                <i class="ion ion-ios-people-outline"></i>
+            </div>
+            <a href="#" ng-click="Export('ALL_CUSTOMERS_ACTIVE')" class="small-box-footer"><i class="fa fa-file-excel-o"></i> Export</a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-xs-6">
+        <div class="small-box bg-yellow">
+            <div class="inner">
+                <h3>{{LicensesSummary.TotalCustCodeLackLicense | number}}</h3>
+                <p>Licenses Expired &amp; Lack</p>
+            </div>
+            <div class="icon">
+                <i class="fa fa-certificate"></i>
+            </div>
+            <a href="#" ng-click="Export('ALL_CUSTOMERS_LICENSES_EXPIRED_LACK')" class="small-box-footer"><i class="fa fa-file-excel-o"></i> Export</a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-xs-6">
+        <div class="small-box bg-aqua">
+            <div class="inner">
+                <h3>{{LicensesSummary.TotalTaxCodeValid | number}}</h3>
+                <p>Tax Code Valid</p>
+            </div>
+            <div class="icon">
+                <i class="fa fa-legal"></i>
+            </div>
+            <a href="#" ng-click="Export('ALL_CUSTOMERS_TAXCODE_VALID')" class="small-box-footer"><i class="fa fa-file-excel-o"></i> Export</a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-xs-6">
+        <div class="small-box bg-purple">
+            <div class="inner">
+                <h3>{{LicensesSummary.TotalTaxCodeInValid | number}}</h3>
+                <p>Tax Code Blank &amp; No Provided</p>
+            </div>
+            <div class="icon">
+                <i class="fa fa-legal"></i>
+            </div>
+            <a href="#" ng-click="Export('ALL_CUSTOMERS_BLANK_NOPROVIDED')" class="small-box-footer"><i class="fa fa-file-excel-o"></i> Export</a>
+        </div>
+    </div>
+</div>
+<!-- Small boxes (Stat box) -->
+<!-- BEGIN CUSTOMER BY CHANNELS GOOGLE CHART -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Customers by Channels</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <!-- Chart area -->
+                    <div class="col-md-7">
+                        <div class="chart-responsive">
+                            <div id="PieChartChannel" style="width: 800px; height: 500px;"></div>
+                        </div>
+                    </div>
+                    <!-- Chart area -->
+                    <div class="col-md-5">
+                        <div class="box-footer no-padding">
+                            <ul class="nav nav-pills nav-stacked">
+                                <li>
+                                    <a href="#" class="text-bold text-blue" ng-click="Export('PHARMACY_PHARMACYCOMPANY')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-blue"></i> 
+                                        PHARMACY &amp; PHARMACY COMPANY
+                                        <span class="pull-right text-blue">
+                                            {{LicensesSummary.TotalCustomerPharmacy | number}} | 
+                                            {{LicensesSummary.TotalCustomerPharmacy / LicensesSummary.TotalCustomerActive*100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('DIANOSTICS_OTHER')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i> 
+                                        DIAGNOSTICS
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalCustomerDianostics | number}} | 
+                                            {{LicensesSummary.TotalCustomerDianostics / LicensesSummary.TotalCustomerActive*100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-orange" ng-click="Export('OTHERS')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-orange"></i>
+                                        OTHERS
+                                        <span class="pull-right text-orange">
+                                            {{LicensesSummary.TotalCustomerOthers | number}} | 
+                                            {{LicensesSummary.TotalCustomerOthers / LicensesSummary.TotalCustomerActive * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('HOSPITAL_CLINIC')" class="text-bold text-green" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                         HOSPITAL &amp; DR. CLINIC
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalCustomerHospitalClinic | number}} | 
+                                            {{LicensesSummary.TotalCustomerHospitalClinic / LicensesSummary.TotalCustomerActive * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CUSTOMERS BY CHANNELS GOOGLE PIE CHART -->
+<!-- stacked chart status license by channel -->
+<div class="row">
+    <!-- BEGIN EXPIRED LICENSES -->
+    <div class="col-md-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-blue">Status Licenses By Channels</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="row">
+                    <!-- Chart area -->
+                    <div class="col-md-7">
+                        <div class="chart-responsive">
+                            <div id="StackedChartChannels" style="width: 650px; height: 400px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <h3><label class="text-green">Total Customers Active: {{LicensesSummary.TotalCustomerActive | number}}</label></h3>
+                        </div>
+                    </div>
+                    <!-- Chart area -->
+                    <div class="col-md-5">
+                        <div class="box-footer no-padding">
+                            <ul class="nav nav-pills nav-stacked">
+                                <li class="bg-title-green" id="bg-title-green">
+                                    <a href="#" class="text-bold text-white" ng-click="Export('TOTAL_FULL_CHANNELS')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-white"></i>
+                                        <b class="text-white">Total Full Licenses</b>
+                                        <span class="pull-right text-white">
+                                            {{LicensesSummary.TotalFullChannels | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-green" ng-click="Export('PHARMACY_FULL')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                        <b class="text-green">PHARMACY &amp; PHARMACY COMPANY</b>
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalFullPharmacy | number}} |
+                                            {{(LicensesSummary.TotalFullPharmacy / LicensesSummary.TotalFullChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-green" ng-click="Export('DIAGNOSTICS_FULL')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                        <b class="text-green">DIAGNOSTICS</b>
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalFullDiagnostics | number}} |
+                                            {{(LicensesSummary.TotalFullDiagnostics / LicensesSummary.TotalFullChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-green" ng-click="Export('OTHERS_FULL')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                        <b class="text-green">OTHERS</b>
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalFullOthers | number}} |
+                                            {{(LicensesSummary.TotalFullOthers / LicensesSummary.TotalFullChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('HOSPITAL_DRCLINIC_FULL')" class="text-bold text-green" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                        <b class="text-green">HOSPITAL &amp; DR. CLINIC</b>
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalFullHospitalDrClinic | number}} |
+                                            {{(LicensesSummary.TotalFullHospitalDrClinic / LicensesSummary.TotalFullChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="box-footer no-padding">
+                            <ul class="nav nav-pills nav-stacked">
+                                <li class="bg-title-red" id="bg-title-red">
+                                    <a href="#" class="text-bold text-white" ng-click="Export('TOTAL_LACKOFLICENSE_CHANNELS')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-white"></i>
+                                        <b class="text-white">Total Lack of Licenses</b>
+                                        <span class="pull-right text-white">
+                                            {{LicensesSummary.TotalLackOfLicenseChannels | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('PHARMACY_LACKOFLICENSE')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        <b class="text-red">PHARMACY &amp; PHARMACY COMPANY</b>
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalLackOfLicensePharmacy | number}} |
+                                            {{(LicensesSummary.TotalLackOfLicensePharmacy / LicensesSummary.TotalLackOfLicenseChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('DIAGNOSTICS_LACKOFLICENSE')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        <b class="text-red">DIAGNOSTICS</b>
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalLackOfLicenseDiagnostics | number}} |
+                                            {{(LicensesSummary.TotalLackOfLicenseDiagnostics / LicensesSummary.TotalLackOfLicenseChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('OTHERS_LACKOFLICENSE')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        <b class="text-red">OTHERS</b>
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalLackOfLicenseOthers | number}} |
+                                            {{(LicensesSummary.TotalLackOfLicenseOthers / LicensesSummary.TotalLackOfLicenseChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('HOSPITAL_DRCLINIC_LACKOFLICENSE')" class="text-bold text-red" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        <b class="text-red">HOSPITAL &amp; DR. CLINIC</b>
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalLackOfLicenseHospitalDrClinic | number}} |
+                                            {{(LicensesSummary.TotalLackOfLicenseHospitalDrClinic / LicensesSummary.TotalLackOfLicenseChannels) * 100 | number:1}} %
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+
+            </div>
+        </div>
+    </div>
+    <!-- END EXPIRED LICENSES -->
+
+</div>
+<!-- stacked chart status license by channel -->
+
+<!-- BEGIN DU DIEU KIEN XUAT BAN -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-red">Đủ điều kiện xuất bán</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="row">
+                    <!-- Chart area -->
+                    <div class="col-md-7">
+                        <div class="chart-responsive">
+                            <div id="BarChartDDKXB" style="width: 650px; height: 400px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <h3><label class="text-green">Total Customers Active: {{LicensesSummary.TotalCustomerActive | number}}</label></h3>
+                        </div>
+                    </div>
+                    <!-- Chart area -->
+                    <div class="col-md-5">
+                        <div class="box-footer no-padding">
+                            <ul class="nav nav-pills nav-stacked">
+                                <li>
+                                    <a href="#" class="text-bold text-green" ng-click="Export('NORMAL')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-green"></i>
+                                        (0) Hàng thường
+                                        <span class="pull-right text-green">
+                                            {{LicensesSummary.TotalNormal | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('PHOI_HOP')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        (1) Thuốc dạng phối hợp có chứa dược chất gây nghiện
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalBuyPhoiHop | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="text-bold text-red" ng-click="Export('THUOC_DOC')" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        (2) Thuốc độc, nguyên liệu độc làm thuốc
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalBuyThuocDoc | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('THUOC_CAM')" class="text-bold text-red" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        (3) Thuốc dược chất thuộc danh mục bị cấm sử dụng
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalBuyThuocCam | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('ALL_NORMAL_SPECIAL')" class="text-bold text-red" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-red"></i>
+                                        All ((0), (1), (2), (3))
+                                        <span class="pull-right text-red">
+                                            {{LicensesSummary.TotalNormalSpecial | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                @*<li>
+                                        <a href="#" ng-click="Export('SINH_PHAM')" class="text-bold text-light-blue" title="Export (xlsx)">
+                                            <i class="fa fa-file-excel-o text-light-blue"></i>
+                                            Sinh phẩm
+                                            <span class="pull-right text-light-blue">
+                                                {{LicensesSummary.TotalBuySinhPham | number}}
+                                            </span>
+                                        </a>
+                                    </li>*@
+                                <li>
+                                    <a href="#" ng-click="Export('VACCIN')" class="text-bold text-light-blue" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-light-blue"></i>
+                                        Vaccin
+                                        <span class="pull-right text-light-blue">
+                                            {{LicensesSummary.TotalBuyVaccin | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" ng-click="Export('BUY_BOTOX_XEOMIN')" class="text-bold text-light-blue" title="Export (xlsx)">
+                                        <i class="fa fa-file-excel-o text-light-blue"></i>
+                                        Botox | Xeomin (Botulinum)
+                                        <span class="pull-right text-light-blue">
+                                            {{LicensesSummary.TotalBuyBotox | number}}
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END DU DIEU KIEN XUAT BAN -->
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-red">Licenses Expired</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-hover no-margin" id="tblLicensesExpired">
+                        <thead>
+                            <tr>
+                                <th class="text-bold text-red">Licenses type</th>
+                                <th class="text-bold text-red">Quantity</th>
+                                <th class="text-bold text-red">Percent (%)</th>
+                                <th class="text-bold text-red">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GPP</td>
+                                <td>{{LicensesSummary.TotalGPPExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGPPExpired/LicensesSummary.TotalLicensesExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GPP_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GDP</td>
+                                <td>{{LicensesSummary.TotalGDPExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGDPExpired/LicensesSummary.TotalLicensesExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GDP_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy chứng nhận đủ điều kiện kinh doanh dược</td>
+                                <td>{{LicensesSummary.TotalGCNDDKKDDExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGCNDDKKDDExpired/LicensesSummary.TotalLicensesExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GCNDDKKDD_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy phép hoạt động khám chữa bệnh</td>
+                                <td>{{LicensesSummary.TotalKCBExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalKCBExpired/LicensesSummary.TotalLicensesExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('KCB_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="text-red">
+                                <td>Total licenses expired</td>
+                                <td>{{LicensesSummary.TotalLicensesExpired | number}}</td>
+                                <td class="text-green">
+                                    
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TOTAL_LICENSES_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <div class="box-footer clearfix">
+                
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-aqua">Tax Code</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-hover no-margin" id="tblLicensesExpired">
+                        <thead>
+                            <tr>
+                                <th class="text-bold text-red">Tax Code</th>
+                                <th class="text-bold text-red">Quantity</th>
+                                <th class="text-bold text-red">Percent (%)</th>
+                                <th class="text-bold text-red">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tax code valid</td>
+                                <td>{{LicensesSummary.TotalTaxCodeValid | number}}</td>
+                                <td class="text-green">{{LicensesSummary.TotalTaxCodeValid/LicensesSummary.TotalTaxCode * 100 | number:1}}</td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TAXCODE_VALID')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Tax code blank (BLANK, XXX, INVALID...)</td>
+                                <td>{{LicensesSummary.TotalTaxCodeBlank | number}}</td>
+                                <td class="text-green">{{LicensesSummary.TotalTaxCodeBlank/LicensesSummary.TotalTaxCode * 100 | number:1}}</td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TAXCODE_BLANK')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Tax code No Provided</td>
+                                <td>{{LicensesSummary.TaxCodeNoProvide | number}}</td>
+                                <td class="text-green">{{LicensesSummary.TaxCodeNoProvide/LicensesSummary.TotalTaxCode * 100 | number:1}}</td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TAXCODE_NO_PROVIDE')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Tax code No Control Licenses</td>
+                                <td>{{LicensesSummary.TaxCodeNoControlLicense | number}}</td>
+                                <td class="text-green">{{LicensesSummary.TaxCodeNoControlLicense/LicensesSummary.TotalTaxCode * 100 | number:1}}</td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TAXCODE_NO_CONTROL_LICENSES')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-red">Total</td>
+                                <td class="text-red">{{LicensesSummary.TotalTaxCode | number}}</td>
+                                <td class="text-green"></td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TOTAL_TAXCODE')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="box-footer clearfix">
+
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- LICENSES COMING EXPIRED -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-aqua">Licenses Coming Expire Soon</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-hover no-margin" id="tblLicensesExpired">
+                        <thead>
+                            <tr class="text-bold text-red">
+                                <th>Licenses type</th>
+                                <th>Quantity</th>
+                                <th>Percent (%)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GPP</td>
+                                <td>{{LicensesSummary.TotalGPPComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGPPComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GPP_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GDP</td>
+                                <td>{{LicensesSummary.TotalGDPComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGDPComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GDP_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GSP</td>
+                                <td>{{LicensesSummary.TotalGSPComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGSPComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GSP_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy chứng nhận đủ điều kiện kinh doanh dược</td>
+                                <td>{{LicensesSummary.TotalGCNDDKKDDComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGCNDDKKDDComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GCNDDKKDD_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy phép hoạt động khám chữa bệnh</td>
+                                <td>{{LicensesSummary.TotalKCBComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalKCBComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('KCB_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy chứng nhận đủ điều kiện tiêm chủng</td>
+                                <td>{{LicensesSummary.TotalGCNDDKTCComingExpired | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGCNDDKTCComingExpired/LicensesSummary.TotalLicenseComingExpired * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GCNDDKTC_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="text-bold text-red">
+                                <td>Total Licenses Coming Expired</td>
+                                <td>{{LicensesSummary.TotalLicenseComingExpired | number}}</td>
+                                <td class="text-green">
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TOTAL_LICENSES_COMING_EXPIRED')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="text-bold text-red">
+                                <td colspan="4"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="box-footer clearfix">
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-warning">
+            <div class="box-header with-border">
+                <h3 class="box-title text-bold text-yellow">Lack of Licenses</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-hover no-margin" id="tblLicensesLack">
+                        <thead>
+                            <tr class="text-bold text-red">
+                                <th>Licenses type</th>
+                                <th>Quantity</th>
+                                <th>Percent(%)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GPP</td>
+                                <td>{{LicensesSummary.TotalGPPMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGPPMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GPP_LACK')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>GDP</td>
+                                <td>{{LicensesSummary.TotalGDPMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGDPMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GDP_LACK')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy chứng nhận đủ điều kiện kinh doanh dược</td>
+                                <td>{{LicensesSummary.TotalGCNDDKKDDMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGCNDDKKDDMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GCNDDKKDD_LACK')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy phép hoạt động khám chữa bệnh</td>
+                                <td>{{LicensesSummary.TotalKCBMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalKCBMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('KCB_LACK')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Giấy phép kinh doanh</td>
+                                <td>{{LicensesSummary.TotalGPKDMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalGPKDMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('GPKD')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Tax Code</td>
+                                <td>{{LicensesSummary.TotalTaxCodeMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalTaxCodeMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TAXCODE')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Danh mục kỹ thuật có tiêm Botox | Xeomin (Botulinum)</td>
+                                <td>{{LicensesSummary.TotalDMKTBotoxXeominMissed | number}}</td>
+                                <td class="text-green">
+                                    {{LicensesSummary.TotalDMKTBotoxXeominMissed/LicensesSummary.TotalLackOfLicenses * 100 | number:1}}
+                                </td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('BOTOX_XEOMIN')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="text-bold text-red">
+                                <td>Total Lack Of License</td>
+                                <td>{{LicensesSummary.TotalLackOfLicenses | number}}</td>
+                                <td></td>
+                                <td>
+                                    <button type="button" title="Export (xlsx)" class="btn btn-xs btn-success" ng-click="Export('TOTAL_LACK_OF_LICENSES')">
+                                        <i class="fa fa-file-excel-o"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END LACK OF LICENSES -->
+<!-- Customers change channel -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Customers changed channel</h3>
+
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                
+                <div class="col-md-12">
+                    <div class="col-md-3" style="margin-top: 25px">
+                        <div class="form-group">
+                            <label class="text-red">(*) Compare two months any</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>From (mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control monthControl" id="dtFromMonth" ng-model="CDIDashboardModel.FromMonth"
+                                        data-format="mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>To (mm-yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control monthControl" id="dtToMonth" ng-model="CDIDashboardModel.ToMonth"
+                                        data-format="mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Channel</label>
+                            <select class="form-control select2" style="width: 100%;" id="txtProjectName"
+                                    ng-model="CDIDashboardModel.CurrentChannel">
+                                <option ng-repeat="item in ChannelCustomer" value="{{item.Channel}}">{{item.Channel}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-2" style="margin-top: 25px">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-success" id="btnExport" ng-click="CompareAnyMonth()">
+                                Compare
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-1" style="margin-top: 25px">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-pinterest" id="btnClear" ng-click="ClearCompare()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Year (yyyy)</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control yearControl" id="dtYear"
+                                       ng-change="SummaryChannelHistory()"
+                                       ng-model="CDIDashboardModel.Years"
+                                       data-format="yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8" style="margin-top: 25px;">
+                        <div class="form-group">
+                            <label class="text-green">
+                                (*) January - {{CDIDashboardModel.Years}} compare to December - {{CDIDashboardModel.Years - 1}}
+                            </label>
+                            <br />
+                            <label class="text-red">
+                                Click on cell to view detail
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table table-bordered no-margin">
+                            <thead>
+                                <tr class="text-green">
+                                    <th class="text-center"><span class="label label-success">{{CDIDashboardModel.Years}}</span></th>
+                                    <th class="text-center">January</th>
+                                    <th class="text-center">February</th>
+                                    <th class="text-center">March</th>
+                                    <th class="text-center">April</th>
+                                    <th class="text-center">May</th>
+                                    <th class="text-center">June</th>
+                                    <th class="text-center">July</th>
+                                    <th class="text-center">August</th>
+                                    <th class="text-center">September</th>
+                                    <th class="text-center">October</th>
+                                    <th class="text-center">November</th>
+                                    <th class="text-center">December</th>
+                                    <th class="text-center text-white col-total">Total {{CDIDashboardModel.Years}}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in filterData= (SummaryChannel)" class="text-right text-bold"
+                                    ng-class-odd="'odd'">
+                                    <td><span class="text-bold text-blue">{{item.NewChannel}}</span></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('01',item)">{{item.January | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('02',item)">{{item.February | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('03',item)">{{item.March | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('04',item)">{{item.April | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('05',item)">{{item.May | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('06',item)">{{item.June | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('07',item)">{{item.July | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('08',item)">{{item.August | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('09',item)">{{item.September | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('10',item)">{{item.Octorber | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('11',item)">{{item.November | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewChannelHistoryDetail('12',item)">{{item.December | number}}</a></td>
+                                    <td class="col-total">{{item.TotalChannel}}</td>
+                                </tr>
+                                <tr class="text-right">
+                                    <td><span class="text-bold text-red">Total months</span></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('01')" class="text-bold text-red">{{TotalMonths.TotalJanuary | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('02')" class="text-bold text-red">{{TotalMonths.TotalFebruary | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('03')" class="text-bold text-red">{{TotalMonths.TotalMarch | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('04')" class="text-bold text-red">{{TotalMonths.TotalApril | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('05')" class="text-bold text-red">{{TotalMonths.TotalMay | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('06')" class="text-bold text-red">{{TotalMonths.TotalJune | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('07')" class="text-bold text-red">{{TotalMonths.TotalJuly | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('08')" class="text-bold text-red">{{TotalMonths.TotalAugust | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('09')" class="text-bold text-red">{{TotalMonths.TotalSeptember | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('10')" class="text-bold text-red">{{TotalMonths.TotalOctorber | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('11')" class="text-bold text-red">{{TotalMonths.TotalNovember | number}}</a></td>
+                                    <td><a href="#" ng-click="ViewTotalEveryMonth('12')" class="text-bold text-red">{{TotalMonths.TotalDecember | number}}</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End customers change channel -->
+
+</section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<!-- angular js -->
+<script src="/Scripts/DashboardDKSH/CDIDashboardController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            minViewMode: "months",
+            useCurrent: true,
+        });
+
+        $('.yearControl').datepicker({
+            autoclose: true,
+            format: 'yyyy',
+            viewMode: "years",
+            minViewMode: "years",
+            useCurrent: true,
+        });
+    })
+</script>

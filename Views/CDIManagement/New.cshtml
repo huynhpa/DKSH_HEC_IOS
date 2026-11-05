@@ -1,0 +1,924 @@
+﻿@{
+    ViewBag.Title = "New";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    ViewBag.Title = "CDI";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+    .editor {
+    }
+    .dateControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    .fix-bottom {
+        margin-bottom: 10px;
+    }
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+</style>
+<!-- angular js -->
+<script src="/Scripts/Controller/CDIController.js"></script>
+<div class="ng-cloak" ng-controller="CdiController">
+    <section class="content-header">
+        <h1>
+            Certification register
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">New certification</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-danger">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>                    
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">                                    
+                <div class="col-md-12">                    
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <a href="@Url.Action("Index", "CDIManagement")" class="btn btn-link" id="btnSearch">Back to Search</a>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <div class="form-group">
+                            <button type="button" ng-click="Save()" class="btn btn-success" ng-if="!isView">Submit</button>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+        </div>
+        <!-- BEGIN ADD -->
+        <form id="register-form" name="formCdi" ng-submit="Save()" novalidate>            
+            <!-- BEGIN CDI -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Customer Information</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Customer code *</label>
+                                <input type="text" class="form-control" ng-change="CheckCustCodeExist()" ng-model="cdiData.CustCode" id="txtCustomerCode" required="required" ng-disabled="isUpdate == true" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Tax code</label>
+                                <input type="text" class="form-control" ng-model="cdiData.TaxCode" id="txtTaxCode" />
+                            </div>
+                        </div>
+                        @if (userDto != null && (userDto.Team.Equals("CDI") || userDto.RoleId.Equals("ADMIN")))
+                        {
+                            <div class="col-md-2" ng-if="isUpdate">
+                                <div class="form-group">
+                                    <label>Update By</label>
+                                    <input type="text" class="form-control" id="txtUpdateBy" disabled ng-model="cdiData.UserId" />
+                                </div>
+                            </div>
+                            <div class="col-md-2" ng-if="isUpdate">
+                                <div class="form-group">
+                                    <label>Update date</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" disabled="disabled" class="form-control pull-right dateControl" id="dtUpdateDate" ng-model="cdiData.UpdateDate" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2" ng-if="isUpdate">
+                                <div class="form-group">
+                                    <label>Create By</label>
+                                    <input type="text" class="form-control" id="txtCreateBy" disabled ng-model="cdiData.CreateBy" />
+                                </div>
+                            </div>
+                            <div class="col-md-2" ng-if="isUpdate">
+                                <div class="form-group">
+                                    <label>Create date</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" disabled="disabled" class="form-control pull-right dateControl" id="dtCreateDate" ng-model="cdiData.CreateDate" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <!-- Customer information -->
+            <div class="box box-info" ng-if="isView">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Customer Info</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Customer name</label>
+                                <input type="text" class="form-control" ng-model="cdiData.CustName" id="txtCustName" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="text-red">Address</label>
+                                <input type="text" class="form-control" ng-model="cdiData.Address" id="txtAddress" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">District</label>
+                                <input type="text" class="form-control" ng-model="cdiData.District" id="txtDistrict" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">ZTerm</label>
+                                <input type="text" class="form-control" ng-model="cdiData.ZTerm" id="txtZTerm" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Province</label>
+                                <input type="text" class="form-control" ng-model="cdiData.Province" id="txtProvince" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Region</label>
+                                <input type="text" class="form-control" ng-model="cdiData.Region" id="txtRegion" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Channel</label>
+                                <input type="text" class="form-control" ng-model="cdiData.Channel" id="txtChannel" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">Tel</label>
+                                <input type="text" class="form-control" ng-model="cdiData.Tel" id="txtTel" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">CGrpCode</label>
+                                <input type="text" class="form-control" ng-model="cdiData.CGrpCode" id="txtCGrpCode" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="text-red">CGrpName</label>
+                                <input type="text" class="form-control" ng-model="cdiData.CGrpName" id="txtCGrpName" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END CUSTOMER INFO -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">GPP | GDP | GSP</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <!-- BEGIN GPP -->
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsGPP" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success"><b>GPP</b></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl"
+                                            ng-change="AddThreeYearGPP()"
+                                            ng-model="cdiData.GPPFromDate" data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GPPToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+                                <label>
+                                    <span class="label {{commonData.StatusCss.gpp}}">
+                                        <b>{{cdiData.GPPRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" ng-click="CalGPPGDPGSP()">Calculate remain days GPP, GDP, GSP</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END GPP -->
+                    <!-- BEGIN GDP -->
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsGDP" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success"><b>GDP</b></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl"
+                                            ng-change="AddThreeYearGDP()"
+                                            ng-model="cdiData.GDPFromDate" data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GDPToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+
+                                <label>
+                                    <span class="label {{commonData.StatusCss.gdp}}">
+                                        <b>{{cdiData.GDPRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END GDP -->
+                    <!-- BEGIN GSP -->
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsGSP" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success"><b>GSP</b></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl"
+                                            ng-change="AddThreeYearGSP()"
+                                            ng-model="cdiData.GSPFromDate" data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GSPToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+                                <label>
+                                    <span class="label {{commonData.StatusCss.gsp}}">
+                                        <b>{{cdiData.GSPRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END GSP -->
+                </div>
+            </div>
+            <!-- BEGIN GPKD | Công bố đủ đk mua bán TTBYT COE | GCN DDKKDD -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Giấy phép kinh doanh (GPKD)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.GPKD" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Giấy phép kinh doanh">GPKD</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>GPKD No.</label>
+                                <input type="text" class="form-control" ng-model="cdiData.GPKDNumber"
+                                        placeholder="Số GPKD" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>GPKD Person</label>
+                                <input type="text" class="form-control" ng-model="cdiData.GPKDName"
+                                        placeholder="Person name" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Chứng minh nhân dân</label>
+                                <input type="text" class="form-control" ng-model="cdiData.CMND"
+                                        placeholder="Chứng minh nhân dân" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.NNKDMBTTBYT" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Ngành nghề kinh doanh có mua bán trang thiết bị y tế">
+                                            Ngành nghề KD có mua bán TTBYT
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsCOETTBYT" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Công bố đủ điều kiện mua bán trang thiết bị y tế (COE)">
+                                            Công bố đủ điều kiện mua bán TTBYT (COE)
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END GPKD | Công bố đủ đk mua bán TTBYT COE | GCN DDKKDD -->
+            <!-- BEGIN Giấy chứng nhận đủ điều kiện kinh doanh dược -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Giấy chứng nhận đủ điều kiện kinh doanh dược (GCN DDKKDD)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <!-- BEGIN GCN ĐĐKKDD -->
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsDDKKDD" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Giấy chứng nhận đủ điều kiện kinh doanh dược">GCN DDKKDD</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GCNDDKKDDFromDate"
+                                            data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GCNDDKKDDToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <!-- /.form-group -->
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+                                <label>
+                                    <span class="label {{commonData.StatusCss.gcnddkkdd}}">
+                                        <b>{{cdiData.GCNDDKKDDRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" ng-click="CalGCNDDKKDD()">Calculate remain days GCN DDKKDD</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END GCN DDKKDD -->
+                </div>
+            </div>
+            <!-- End -->
+            <!-- BEGIN Phạm vi kinh doanh - Đủ điều kiện xuất bán-->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Phạm vi kinh doanh (PVKD) | Đủ điều kiện xuất bán (DDKXB) | Botox | Xeomin (Botulinum)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <!-- BEGIN PHẠM VI KINH DOANH -->
+                    <div class="col-md-12">
+                        <div class="col-md-2" style="margin-top: 30px;">
+                            <div class="form-group">
+                                <label class="text-green"><b data-toggle="tooltip" title="Phạm vi kinh doanh">PVKD</b></label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.TDPHCCDCGN" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Thuốc dạng phối hợp có chứa dược chất gây nghiện">
+                                            Thuốc dạng phối hợp có chứa dược chất gây nghiện
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.TDNLDLT" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Thuốc độc, nguyên liệu độc làm thuốc">
+                                            Thuốc độc, nguyên liệu độc làm thuốc
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.TDDMCSD" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Thuốc, dược chất thuộc danh mục bị cấm sử dụng">
+                                            Thuốc, dược chất thuộc danh mục bị cấm sử dụng
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.SinhPham" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Sinh phẩm">
+                                            Sinh phẩm
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.Vaccin" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Vaccin">
+                                            Vaccin
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END PHẠM VI KINH DOANH -->
+                    <!-- BEGIN ĐỦ ĐIỀU KIỆN XUẤT BÁN -->
+                    <div class="col-md-12">
+                        <div class="col-md-2" style="margin-top: 30px;">
+                            <div class="form-group">
+                                <label class="text-red"><b data-toggle="tooltip" title="Đủ điều kiện xuất bán">DDKXB</b></label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKXB_TDPHCCDCGN" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-danger">
+                                        <b data-toggle="tooltip" title="Thuốc dạng phối hợp có chứa dược chất gây nghiện">
+                                            Thuốc dạng phối hợp có chứa dược chất gây nghiện
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKXB_TDNLDLT" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-danger">
+                                        <b data-toggle="tooltip" title="Thuốc độc, nguyên liệu độc làm thuốc">
+                                            Thuốc độc, nguyên liệu độc làm thuốc
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKXB_TDDMCSD" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-danger">
+                                        <b data-toggle="tooltip" title="Thuốc, dược chất thuộc danh mục bị cấm sử dụng">
+                                            Thuốc, dược chất thuộc danh mục bị cấm sử dụng
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKXB_SinhPham" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-danger">
+                                        <b data-toggle="tooltip" title="Sinh phẩm">
+                                            Sinh phẩm
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKXB_Vaccin" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-danger">
+                                        <b data-toggle="tooltip" title="Vaccin">
+                                            Vaccin
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsManual" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-warning">
+                                        <b data-toggle="tooltip" title="Trường hợp ngoại lệ">
+                                            IS MANUAL
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- BEGIN Botox/ Botulinum | Botox/ Xeomin -->
+                    <div class="col-md-12">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DMKTCTBotoxBotulinum" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-warning">
+                                        <b data-toggle="tooltip" title="Danh mục kỹ thuật (có tiêm Botox/ Botulinum)">
+                                            Danh mục kỹ thuật (có tiêm Botox | Xeomin (Botulinum))
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.DDKM_BotoxXeomin" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-warning">
+                                        <b data-toggle="tooltip" title="Đủ điều kiện xuất bán Botox/ Xeomin">
+                                            Đủ điều kiện xuất bán Botox | Xeomin (Botulinum)
+                                        </b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END Botox/ Botulinum | Botox/ Xeomin -->
+                    <div class="col-md-12 text-right">
+                        <div class="form-group">
+                            <label class="text-red">
+                                (*) Đối với những trường hợp ngoại lệ khi xét đủ điều kiện xuất bán 1 số loại thuốc thì chọn
+                                <b class="text-yellow">IS MANUAL</b>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- END ĐỦ ĐIỀU KIỆN XUẤT BÁN -->
+                </div>
+            </div>
+            <!-- END Phạm vi kinh doanh - Đủ điều kiện xuất bán -->
+            <!-- BEGIN Giấy phép hoạt động KCB -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Giấy phép hoạt động khám chữa bệnh (GPHD KCB)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <!-- BEGIN KCB -->
+                    <div class="col-md-12">
+                        <div class="col-md-3 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsKCB" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Giấy phép hoạt động khám chữa bệnh">GPHD KCB</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.KCBFromDate" data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.KCBToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+                                <label>
+                                    <span class="label {{commonData.StatusCss.kcb}}">
+                                        <b>{{cdiData.KCBRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" ng-click="CalKCB()">Calculate remain days GPHD KCB</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END KCB -->
+                    
+                </div>
+            </div>
+
+            <!-- BEGIN OTHER INFORMATION -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Giấy chứng nhận đủ điều kiện tiêm chủng (GCN DDKTC)</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="box-body">
+                    <!-- BEGIN GCN Đủ điều kiện tiêm chủng -->
+                    <div class="col-md-12">
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="cdiData.IsGCNDDKTC" />
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span class="label label-success">
+                                        <b data-toggle="tooltip" title="Giấy chứng nhận đủ điều kiện tiêm chủng">GCN DDKTC</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Start date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GCNDDKTCFromDate" data-format="dd-mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>End date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control pull-right dateControl" ng-model="cdiData.GCNDDKTCToDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Days</label>
+                                <br />
+                                <label>
+                                    <span class="label {{commonData.StatusCss.gcnddktc}}">
+                                        <b>{{cdiData.GCNDDKTCRemainingDays}}</b>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 fix-chk-mg">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" ng-click="CalGCNDDKTC()">Calculate remain days GCN DDKTC</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- END GCN Đủ điều kiện tiêm chủng -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Remark</label>
+                            <textarea type="text" class="editor" id="txtRemark" ng-model="cdiData.Remark"
+                                      style="width:100%;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END OTHER INFORMATION -->
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Submit</button>
+            <button type="button" class="btn btn-pinterest" ng-click="Cancel()" data-dismiss="modal">Cancel</button>
+        </div>
+        </form>
+        <!-- END ADD -->
+    </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    });
+</script>

@@ -1,0 +1,258 @@
+﻿@{
+    ViewBag.Title = "Products Information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblProductInformation th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblProductInformation td {
+        vertical-align: middle;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.select2').select2();
+    })
+</script>
+<div class="ng-cloak" ng-controller="ProductInformationController">
+    <section class="content-header">
+        <h1>
+            Product Information
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Product Information</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchProduct()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Supplier</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlSupplier" ng-model="SearchParam.Supplier">
+                                    <option ng-repeat="item in Suppliers" value="{{item.Supplier}}">{{item.Supplier}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>ProductID</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.ProductID" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>ProductName</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.ProductName" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>ProductGroup</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.ProductGroup" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.Category" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-sm btn-success">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-sm btn-pinterest" ng-click="resetForm()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>                        
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="col-md-4 pull-left">
+                        <div class="form-group">
+                            <strong class="text-red">Last updated date : {{LastUpdateDate}}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6 pull-right">
+                        <div class="form-group">
+                            <simple-pagination current-page="settings.currentPage"
+                                               offset="settings.offset"
+                                               page-limit="settings.pageLimit"
+                                               page-limits="settings.pageLimits"
+                                               on-update="callback()"
+                                               total="ListProduct.length"></simple-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Product Information List</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tblProductInformation" class="table table-bordered">
+                        <thead>
+                            <tr class="text-info">
+                                <th>Supplier</th>
+                                <th>ProductID</th>
+                                <th>ProductName</th>
+                                <th>PrdHierarchy</th>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>ProductGroup</th>
+                                <th>ProductSubGroup</th>
+                                <th>VAT</th>
+                                <th>SellingPrice</th>
+                                <th>GenericName</th>
+                                <th>UnitOfMeasure</th>
+                                <th>SalesUnit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (ListProduct | limitTo:settings.pageLimit:settings.offset)"
+                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                <td>{{item.Supplier}}</td>             
+                                <td>{{item.ProductID}}</td>
+                                <td>{{item.ProductName}}</td>
+                                <td>{{item.PrdHierarchy}}</td>
+                                <td>{{item.Category}}</td>
+                                <td>{{item.Brand}}</td>
+                                <td>{{item.ProductGroup}}</td>
+                                <td>{{item.ProductSubGroup}}</td>
+                                <td>{{item.VAT}}</td>
+                                <td class="text-right">{{item.SellingPrice | number}}</td>
+                                <td>{{item.GenericName}}</td>
+                                <td>{{item.UnitOfMeasure}}</td>
+                                <td>{{item.SalesUnit}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <simple-pagination current-page="settings.currentPage"
+                                       offset="settings.offset"
+                                       page-limit="settings.pageLimit"
+                                       page-limits="settings.pageLimits"
+                                       on-update="callback()"
+                                       total="ListProduct.length"></simple-pagination>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdProductInformation" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload product</h4>
+                </div>
+                <form name="ProductInfoForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Product Information</h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File (xls | xlsx)</label>
+                                            <input type="file" class="form-control" id="txtProductFile"
+                                                   upload-file="ProductFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" ng-click="UploadProduct()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/ProductInformationController.js"></script>
+
+
+

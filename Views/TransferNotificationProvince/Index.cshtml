@@ -1,0 +1,497 @@
+﻿@{
+    ViewBag.Title = "Transfer Notification Province";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblInvoice th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblInvoice td {
+        vertical-align: middle;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .vmiddle {
+        vertical-align: middle !important;
+    }
+
+    .dateControl {
+    }
+    .fix-margin-top {
+        margin-top: 25px;
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 400px;
+    }
+</style>
+
+<div class="ng-cloak" ng-controller="TransferNotificationProvinceController">
+    <section class="content-header">
+        <h1>
+            Transfer Notification Province
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pharmacy</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchInvoice()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>SO Number</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.SONumber"
+                                       ng-change="SetPaging()" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Cust Code</label>
+                                <input type="text" class="form-control" ng-model="SearchParam.CustCode" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Create from</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                           ng-model="SearchParam.CreateDateFrom" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>to date (dd-mm-yyyy)</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control dateControl pull-right" data-format="dd-mm-yyyy"
+                                           ng-model="SearchParam.CreateDateTo" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right fix-margin-top">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm" ng-click="DownloadTemplate()">
+                                    <i class="fa fa-cloud-download"></i> Template
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-info btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdCustomerEmail">
+                                    Upload email
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdTransferNotification">
+                                    <i class="fa fa-cloud-upload"></i> Upload data
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Clear()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-left">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm" ng-click="SendMail()">
+                                    <i class="fa fa-send"></i> Send mail
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm" ng-click="DownloadInvoices()">
+                                    <i class="fa fa-cloud-download"></i> Download All
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title"></h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <p><label class="label label-success">{{totalItems}} rows</label></p>
+                    <br />
+                    <table id="tblInvoice" class="table table-bordered">
+                        <thead>
+                            <tr class="text-green">
+                                @*<th class="text-center vmiddle">
+                                    <input type="checkbox" ng-click="CheckAllDelivery()" id="allDelivery" ng-model="AllDelivery" />
+                                </th>*@
+                                <th>Action</th>
+                                <th>Share Status</th>
+                                <th>Customer Code</th>
+                                <th>Customer Name</th>
+                                <th>Plant</th>
+                                <th>Order Quantity</th>
+                                <th>Amount</th>
+                                <th>Order date</th>
+                                <th>Create Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (InvoiceList)"
+                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                @*<td>
+                                    <input type="checkbox" id="invoice_{{$index}}" />
+                                </td>*@
+                                <td class="text-center">
+                                    <span>
+                                        <button type="button" title="View" class="btn btn-info btn-sm" ng-click="ViewInvoiceDetail(item)"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdViewInvoiceDetail">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" class="btn btn-primary btn-sm" ng-click="SetPlant(item)"
+                                                data-backdrop="static" data-keyboard="false"
+                                                data-toggle="modal" data-target="#mdShare" title="Share Invoice">
+                                            <i class="fa fa-share-alt"></i>
+                                        </button>
+                                    </span>
+                                    <span>
+                                        <button type="button" class="btn btn-warning btn-sm" ng-click="ExportPDF(item)" title="Download PDF">
+                                            <i class="fa fa-file-pdf-o"></i>
+                                        </button>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <label ng-if="item.ShareStatus == 1">
+                                        <span class="label label-success"><b>SUCCESS</b></span>
+                                    </label>
+                                    <label ng-if="item.ShareStatus == 0">
+                                        <span class="label label-danger"><b>FAILED</b></span>
+                                    </label>
+                                </td>
+                                <td>{{item.CustCode}}</td>
+                                <td>{{item.CustName}}</td>
+                                <td>{{item.Plant}}</td>
+                                <td class="text-right">{{item.OrderQty | number}}</td>
+                                <td class="text-right">{{item.Amount}}</td>
+                                <td>{{item.OrderDate}}</td>
+                                <td>{{item.CreateDate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdTransferNotification" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 50%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Upload data and Process</h4>
+                </div>
+                <form name="TransferNotificationForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtInvoiceFile"
+                                                   upload-file="InvoiceFileUpload"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-success" ng-click="UploadAndProcess()">
+                            <i class="fa fa-cloud-upload"></i>&nbsp;Upload &amp; Process
+                        </button>
+                        <button type="button" class="btn btn-sm btn-pinterest" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Invoice detail -->
+    <div id="mdViewInvoiceDetail" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 80%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Invoice detail</h4>
+                </div>
+                <form name="InvoiceDetailForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <div class="col-md-12">
+                                    <table id="tblInvoice" class="table table-bordered">
+                                        <thead>
+                                            <tr class="text-green">
+                                                <th>SO Number</th>
+                                                <th>CustCode</th>
+                                                <th>CustName</th>
+                                                <th>Product Name</th>
+                                                <th>Order Qty</th>
+                                                <th>TTV</th>
+                                                <th>Order date</th>
+                                                <th>Plant</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in InvoiceDetails"
+                                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                                <td>{{item.SONumber}}</td>
+                                                <td>{{item.CustCode}}</td>
+                                                <td>{{item.CustName}}</td>
+                                                <td>{{item.ProductName}}</td>
+                                                <td class="text-right">{{item.OrderQty}}</td>
+                                                <td class="text-right">{{item.Amount}}</td>
+                                                <td>{{item.OrderDate}}</td>
+                                                <td>{{item.Plant}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Invoice detail -->
+
+    <!-- Upload email customer -->
+    <div id="mdCustomerEmail" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 100px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Email</h4>
+                </div>
+                <form name="TransferNotificationForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtUploadEmail"
+                                                   upload-file="InvoiceFileUpload"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-success" ng-click="UploadEmail()">
+                            <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                        </button>
+                        <button type="button" class="btn btn-sm btn-pinterest" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Upload email customer -->
+    
+    <!-- SHARE -->
+    <div id="mdShare" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Share</h4>
+                </div>
+                <form name="ShareForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Share method</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlShareVia" ng-model="SendMethod">
+                                                <option ng-repeat="item in ShareMethod" value="{{item.key}}">{{item.value}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5" ng-show="SendMethod == 'email'">
+                                        <div class="form-group">
+                                            <label class="text-red">Sender *</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlSender" ng-model="InvoiceDto.Sender">
+                                                <option ng-repeat="item in SenderList" value="{{item.value}}">{{item.email}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" ng-show="SendMethod == 'email'">
+                                        <div class="form-group">
+                                            <label class="text-red">Password *</label>
+                                            <input type="password" class="form-control" ng-model="InvoiceDto.Password" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12" ng-show="SendMethod == 'email'">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Receiver * Separate by semicolon (;)</label>
+                                            <input type="text" class="form-control" ng-model="InvoiceDto.Receiver" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12" ng-show="SendMethod == 'email'">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="text-red">Content *</label>
+                                            <textarea type="text" class="editor" id="txtContent" ng-model="InvoiceDto.Content"
+                                                      placeholder="Place content here..."
+                                                      style="width:100%;"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" ng-click="Send()">
+                                    <i class="fa fa-send-o"></i> Send
+                                </button>
+                                <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END SHARE -->
+    <!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/TransferNotificationProvinceController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        $('.dateControl').datepicker('setDate', today);
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>

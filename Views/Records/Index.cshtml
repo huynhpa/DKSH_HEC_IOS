@@ -1,0 +1,951 @@
+﻿@{
+    ViewBag.Title = "Records";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblRecord th, #tblMonitoryHistory th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblRecord td, #tblMonitoryHistory td {
+        vertical-align: middle;
+    }
+    #tblRecord th, #tblRecord td, #tblMonitoryHistory th, #tblMonitoryHistory td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #tblEvaluation th, #tblEvaluation td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 500px;
+    }
+
+    .dateControl {
+    }
+
+    .editor {
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+
+    .bg-blue-sky {
+        background-color: #86D7FA;
+    }
+</style>
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="/plugins/timepicker/bootstrap-timepicker.min.css">
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+    })
+</script>
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+}
+<div class="ng-cloak" ng-controller="RecordsController">
+    <input type="hidden" id="UserName" ng-model="UserSession.UserName" value="@userDto.UserName" />
+    <input type="hidden" id="UserId" ng-model="UserSession.UserId" value="@userDto.UserId" />
+    <input type="hidden" id="IsAdmin" ng-model="UserSession.IsAdmin" value="@userDto.IsAdmin" />
+    <input type="hidden" id="Extension" ng-model="UserSession.Extension" value="@userDto.Extension" />
+    <input type="hidden" id="IsTeleSaleLeader" ng-model="UserSession.IsTeleSaleLeader" value="@userDto.IsTeleSaleLeader" />
+    <section class="content-header">
+        <h1>
+            Records &amp; Monitor
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li>Report</li>
+            <li class="active">Records</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active" ng-click="Reset()"><a href="#Records" data-toggle="tab" aria-expanded="false">Records</a></li>
+                        <li class="" ng-click="Reset()"><a href="#MonitorHistory" data-toggle="tab" aria-expanded="false">Monitor History</a></li>
+                        @if (userDto != null && !userDto.EmpLevels.Equals("AGENT"))
+                        {
+                            <li class="" ng-click="TeleOrgchartTab()"><a href="#TeleOrgChart" data-toggle="tab" aria-expanded="false">TeleSales OrgChart</a></li>
+                        }
+                        </ul>
+                    <!-- begin tab content -->
+                    <div class="col-md-12 tab-content">
+                        <!-- begin tab records -->
+                        <div class="tab-pane active" id="Records">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Search</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form ng-submit="Search()" name="formSearch" method="get">
+                                        <div class="col-md-12">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Agent</label>
+                                                    <select class="form-control" id="ddlAgentRecord" style="width: 100%;"
+                                                            ng-model="SearchParam.cnum">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in ListTeleOrgChart" value="{{item.AgentExtension}}">{{item.AgentExtension}} - {{item.AgentName}} - {{item.AgentContract}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Destination</label>
+                                                    <input type="text" class="form-control" ng-model="SearchParam.destination" id="txtDestination" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>RecordID</label>
+                                                    <input type="text" class="form-control" ng-model="SearchParam.RecordID" id="txtRecordID" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Disposition</label>
+                                                    <select class="form-control" style="width: 100%;"
+                                                            ng-model="SearchParam.disposition">
+                                                        <option value="">Select all</option>
+                                                        <option value="ANSWERED">ANSWERED</option>
+                                                        <option value="BUSY">BUSY</option>
+                                                        <option value="FAILED">FAILED</option>
+                                                        <option value="NO ANSWER">NO ANSWER</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Call date: from</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="SearchParam.calldate"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>to</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="SearchParam.calldate_to"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="text-red">Server</label>
+                                                    <select class="form-control" style="width: 100%;"
+                                                            ng-model="SearchParam.server_record">
+                                                        <option value="">Select all</option>
+                                                        <option value="DKSH">10.210.148.36</option>
+                                                        <option value="GIGAMED">GIGAMED</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="text-red">Report call</label>
+                                                    <select class="form-control" style="width: 100%;"
+                                                            ng-model="SearchParam.report_type">
+                                                        <option value="">Select all</option>
+                                                        <option value="RECORD">Record</option>
+                                                        <option value="TALK_TIME">Talk time</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-md-12">
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-info btn-sm">
+                                                        <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Reset()">
+                                                        <strong>Clear</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-right">
+                                                <div class="form-group fix-top-22">
+                                                    <button type="button" class="btn btn-block btn-sm bg-green-active"
+                                                            ng-click="Report()">
+                                                        <i class="fa fa-file-excel-o"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-md-2 pull-right">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn btn-block bg-aqua-active btn-sm" ng-click="FetchRecordIssabel()">
+                                                        <strong>Get Records</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Records</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListRecords.length"></simple-pagination>
+                                        <br />
+                                        <table id="tblRecord" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-blue-active">
+                                                    <th width="5%">RecordID</th>
+                                                    <th width="3%">#</th>
+                                                    <th width="20%">Audio</th>
+                                                    <th width="10%">calldate</th>
+                                                    <th width="8%">destination</th>
+                                                    <th width="5%">extension</th>
+                                                    <th width="5%">agent name</th>
+                                                    <th width="5%">duration</th>
+                                                    <th width="6%">disposition</th>
+                                                    <th width="2%">server</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListRecords | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td width="5%" class="text-bold">{{item.RecordID | uppercase}}</td>
+                                                    <td width="3%" class="text-center">
+                                                        @*<span>
+                                                            <a class="btn bg-light-blue-active btn-sm"
+                                                                ng-click="copyClipboard(item.RecordID)"
+                                                                data-toggle="modal" title="Copy RecordID">
+                                                                <i class="fa fa-copy"></i>
+                                                            </a>
+                                                        </span>*@
+                                                        @if (userDto.IsTeleSaleLeader == true)
+                                                        {
+                                                            <span>
+                                                                <a class="btn bg-light-blue-active btn-sm" ng-click="GetRecordInfoToMonitor(item)"
+                                                                   data-toggle="modal" title="Evaluation call">
+                                                                    <i class="fa fa-comments"></i>
+                                                                </a>
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                    <td width="20%">
+                                                        <span ng-show="item.RecordLink != null && item.RecordLink != ''">
+                                                            <audio controls="controls" id="myAudio_{{item.RecordID}}">
+                                                                <source ng-src="{{item.RecordLink}}" />
+                                                            </audio>
+                                                        </span>
+                                                    </td>
+                                                    @*<td width="2%">
+                                                        <small class="label text-center" ng-class="item.IsMonitored == true ? 'bg-green' : ''">{{item.IsMonitored == true ? 'MONITORED' : ''}}</small>
+                                                    </td>*@
+                                                    <td width="10%">{{item.calldate}}</td>
+                                                    <td width="8%" class="text-bold">{{item.destination}}</td>
+                                                    <td width="5%" class="text-bold text-right">{{item.cnum}}</td>
+                                                    <td width="5%" class="text-bold">{{item.AgentName}} {{item.contracts}}</td>
+                                                    <td width="5%" class="text-right">{{item.duration}}</td>
+                                                    <td width="6%" class="text-center">
+                                                        <span ng-if="item.disposition == 'ANSWERED'">
+                                                            <small class="label label-success">
+                                                                <b>ANSWERED</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.disposition == 'BUSY' || item.disposition == 'FAILED' || item.disposition == 'NO ANSWER'">
+                                                            <small class="label label-danger">
+                                                                <b>{{item.disposition}}</b>
+                                                            </small>
+                                                        </span>
+                                                    </td>
+                                                    <td width="2%" class="text-center text-bold">
+                                                        <span ng-if="item.server_record == 'DKSH'">
+                                                            <small class="label label-info">
+                                                                <b>Server 10.210.148.36</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.server_record == 'GIGAMED'">
+                                                            <small class="label label-warning">
+                                                                <b>Server GIGAMED</b>
+                                                            </small>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListRecords.length"></simple-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end tab records -->
+                        <!-- begin tab monitor history -->
+                        <div class="tab-pane" id="MonitorHistory">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Monitor History</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form ng-submit="SearchMonitorHistory()" name="formMonitorHistory" method="get">
+                                        <div class="col-md-12">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Monitory By</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            ng-model="SearchParam.LeaderExtension"
+                                                            ng-change="GetAgentByLeader()">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in LeaderList" value="{{item.LeaderExtension}}">{{item.LeaderExtension}}-{{item.LeaderName}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Agent</label>
+                                                    <select class="form-control select2" id="ddlAgentByLeader" style="width: 100%;"
+                                                            ng-model="SearchParam.AgentExtension">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in ListAgentByLeader" value="{{item.AgentExtension}}">{{item.AgentExtension}}-{{item.AgentName}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Monitor date: from</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="SearchParam.MonitorDateFrom"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>to</label>
+                                                    <div class="input-group date">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-calendar"></i>
+                                                        </div>
+                                                        <input type="text" class="form-control dateControl" ng-model="SearchParam.MonitorDateTo"
+                                                               data-format="dd-mm-yyyy" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-info btn-sm">
+                                                        <strong>Search</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 pull-left">
+                                                <div class="form-group">
+                                                    <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="Reset()">
+                                                        <strong>Clear</strong>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-right">
+                                                <div class="form-group fix-top-22">
+                                                    <button type="button" class="btn btn-block bg-green-active"
+                                                            ng-click="MonitorHistoryExport()">
+                                                        <i class="fa fa-file-excel-o"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListMonitorHistory.length"></simple-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Monitor History</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblMonitoryHistory" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="bg-blue-active">
+                                                    <th>#</th>
+                                                    <th>Agent</th>
+                                                    <th>Leader</th>
+                                                    <th>Monitor time</th>
+                                                    <th>Monitor by</th>
+                                                    <th>Destination</th>
+                                                    <th>Call Date</th>
+                                                    <th>Duration (s)</th>
+                                                    <th class="bg-aqua-active">Total Mark</th>
+                                                    <th class="bg-aqua-active">A. Lời chào</th>
+                                                    <th class="bg-aqua-active">B. Mối quan hệ với khách hàng</th>
+                                                    <th class="bg-aqua-active">C. Nội dung</th>
+                                                    <th class="bg-aqua-active">D. Cảm xúc</th>
+                                                    <th class="bg-aqua-active">E. Kết thúc</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListMonitorHistory | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td>
+                                                        <span ng-show="item.MonitorBy == UserSession.Extension">
+                                                            <a class="btn bg-aqua-active btn-sm" ng-click="GetMonitorDetail(item)"
+                                                               data-toggle="modal" title="Evaluation detail">
+                                                                <i class="fa fa-eye"></i>
+                                                            </a>
+                                                        </span>
+
+                                                    </td>
+                                                    <td>{{item.MonitorAgent}}-{{item.FullName}}</td>
+                                                    <td>{{item.LeaderExtension}}-{{item.LeaderName}}</td>
+                                                    <td>{{item.MonitorDateTime}}</td>
+                                                    <td>{{item.MonitorBy}}-{{item.MonitorName}}</td>
+                                                    <td>{{item.destination}}</td>
+                                                    <td>{{item.calldate}}</td>
+                                                    <td class="text-right">{{item.duration}}</td>
+                                                    <td class="text-right bg-aqua-active">{{item.TotalMark}}</td>
+                                                    <td class="text-right" ng-repeat="mark in item.EvaluationResult">
+                                                        {{mark.Mark}}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- telesales orgchart -->
+                        <div class="tab-pane" id="TeleOrgChart">
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">TeleSales OrgChart</h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body">
+                                    <form ng-submit="SearchTeleOrgchart()" name="formTeleOrgchart" method="get">
+                                        <div class="col-md-12">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Leader</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            ng-model="SearchParam.LeaderExtension">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in LeaderList" value="{{item.LeaderExtension}}">{{item.LeaderExtension}}-{{item.LeaderName}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Agent</label>
+                                                    <select class="form-control select2" style="width: 100%;"
+                                                            ng-model="SearchParam.AgentExtension">
+                                                        <option value="">Select all</option>
+                                                        <option ng-repeat="item in ListAgentByLeader" value="{{item.AgentExtension}}">{{item.AgentExtension}}-{{item.AgentName}}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="col-md-1 pull-left">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-block btn-info btn-sm">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-left">
+                                                <div class="form-group fix-top-22">
+                                                    <button type="button" class="btn btn-block bg-green-active btn-sm"
+                                                            ng-click="TeleOrgChartExport()">
+                                                        <i class="fa fa-file-excel-o"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 pull-right">
+                                                <div class="form-group fix-top-22">
+                                                    <button type="button" class="btn btn-block bg-green-active btn-sm"
+                                                            ng-click="NewTeleOrgChart()">
+                                                        <i class="fa fa-user-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div class="col-md-12">
+                                        <simple-pagination current-page="settings.currentPage"
+                                                           offset="settings.offset"
+                                                           page-limit="settings.pageLimit"
+                                                           page-limits="settings.pageLimits"
+                                                           on-update="callback()"
+                                                           total="ListTeleOrgChart.length"></simple-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblTeleOrgchart" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr class="text-center bg-blue-sky">
+                                                    <th class="text-center">Action</th>
+                                                    <th>UpdateDate</th>
+                                                    <th>AgentExtension</th>
+                                                    <th>AgentName</th>
+                                                    <th>Levels</th>
+                                                    <th>AgentEmail</th>
+                                                    <th>LeaderName</th>
+                                                    <th>LeaderExtension</th>
+                                                    <th>SalemanCode</th>
+                                                    <th>LeaderEmail</th>
+                                                    <th>SFACode</th>
+                                                    <th>AgentContract</th>
+                                                    <th>Team</th>
+                                                    <th>Active</th>
+                                                    <th>Note</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (ListTeleOrgChart | limitTo:settings.pageLimit:settings.offset)">
+                                                    <td class="text-center">
+                                                        <span ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                                                            <a class="btn bg-aqua-active btn-sm" ng-click="GetTeleOrgChartDetail(item)"
+                                                               data-toggle="modal" title="Detail">
+                                                                <i class="fa fa-pencil"></i>
+                                                            </a>
+                                                        </span>
+                                                        <span ng-if="UserSession.IsAdmin != null && UserSession.IsAdmin != ''">
+                                                            <button type="button" class="btn btn-pinterest btn-sm"
+                                                                    ng-click="DeleteTeleSaleOrgChart(item)">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </span>
+                                                    </td>
+                                                    <td>{{item.UpdateDate}}</td>
+                                                    <td>{{item.AgentExtension}}</td>
+                                                    <td>{{item.AgentName}}</td>
+                                                    <td>{{item.EmpLevels}}</td>
+                                                    <td>{{item.AgentEmail}}</td>
+                                                    <td>{{item.LeaderName}}</td>
+                                                    <td>{{item.LeaderExtension}}</td>
+                                                    <td>{{item.SalemanCode}}</td>
+                                                    <td>{{item.LeaderEmail}}</td>
+                                                    <td>{{item.SFACode}}</td>
+                                                    <td>{{item.AgentContract}}</td>
+                                                    <td>{{item.Team}}</td>
+                                                    <td>
+                                                        <span ng-if="item.IsActive == '1'">
+                                                            <small class="label label-success">
+                                                                <b>Active</b>
+                                                            </small>
+                                                        </span>
+                                                        <span ng-if="item.IsActive == '0'">
+                                                            <small class="label label-danger">
+                                                                <b>In-Active</b>
+                                                            </small>
+                                                        </span>
+                                                    </td>
+                                                    <td>{{item.Note}}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Evaluation form -->
+        <div id="mdEvaluationCall" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 80%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-info">Evaluation Call</h4>
+                    </div>
+                    <form name="EvaluationCallForm" ng-submit="SaveEvaluationCall()" method="post">
+                        <div class="modal-body">
+                            <div class="box box-primary">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body fix-modal-body">
+                                    <div class="col-md-12">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Call date</label>
+                                                <input type="text" class="form-control" disabled="disabled" ng-model="MonitorHistory.calldate" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Agent <strong class="text-red">{{MonitorHistory.cnum}}</strong></label>
+                                                <input type="text" class="form-control" disabled="disabled" ng-model="MonitorHistory.FullName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Contract <strong class="text-red">{{MonitorHistory.contracts}}</strong></label>
+                                                <input type="text" class="form-control" disabled="disabled" ng-model="MonitorHistory.contracts" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Destination</label>
+                                                <input type="text" class="form-control" disabled="disabled" ng-model="MonitorHistory.destination" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Duration</label>
+                                                <input type="text" class="form-control" disabled="disabled" ng-model="MonitorHistory.duration" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-12">
+                                        <table id="tblEvaluation" class="table table-bordered table-responsive no-padding">
+                                            <thead>
+                                                <tr class="bg-blue text-center">
+                                                    <th width="10%">01</th>
+                                                    <th>02</th>
+                                                    <th>03</th>
+                                                    <th>Evaluation</th>
+                                                    <th>Note</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (CriterialEvaluationCall)">
+                                                    <td width="10%" class="text-bold text-red">
+                                                        <span>
+                                                            {{item.EvaluationNameVN01}}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-bold text-green">
+                                                        <span>{{item.EvaluationNameVN02}}</span>
+                                                    </td>
+                                                    <td>
+                                                        {{item.EvaluationNameVN03}}
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-control" style="width: 100%;"
+                                                                id="optionMark_{{$index}}_{{item.CriterialID}}">
+                                                            <option value="0"></option>
+                                                            <option ng-repeat="item01 in EvaluationMark" value="{{item01.EvalID}}">{{item01.Mark}}-{{item01.EvalulationName}}</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control col-md-4" id="txtNote_{{$index}}_{{item.CriterialID}}" />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-green-leaf">
+                                        <i class="fa fa-save"></i>&nbsp;Submit
+                                    </button>
+                                    <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="mdTeleSalesOrgChart" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 80%; margin: 10px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header bg-olive-active">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Agent info</h4>
+                    </div>
+                    <form name="TeleSalesOrgChartForm" ng-submit="SaveTeleSalesOrgChart()" method="post">
+                        <div class="modal-body">
+                            <div class="box box-primary">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body fix-modal-body">
+                                    <div class="col-md-12">
+                                        
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">Login Username</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.WindowsUser" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">AgentExtension</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.AgentExtension" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">AgentName</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.AgentName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">AgentEmail</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.AgentEmail" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>SFACode</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.SFACode" />
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">Agent Level</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlEmpLevels" ng-model="TeleOrgchartDto.EmpLevels">
+                                                    <option value=""></option>
+                                                    <option value="AGENT">AGENT</option>
+                                                    <option value="LEADER">LEADER</option>
+                                                    <option value="MANAGER">MANAGER</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>SalemanCode</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.SalemanCode" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">Team</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlTeam" ng-model="TeleOrgchartDto.Team">
+                                                    <option value="">ALL</option>
+                                                    @foreach (var item in ViewBag.AGENT_GROUP)
+                                                    {
+                                                        <option value="@item.GroupCode">@item.GroupName</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">AgentContract</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        id="ddlAgentContract" ng-model="TeleOrgchartDto.AgentContract">
+                                                    <option value=""></option>
+                                                    <option value="VIME">VIME</option>
+                                                    <option value="DKSH">DKSH</option>
+                                                    <option value="GGM">GIGAMED</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label>Project</label>
+                                                <select class="form-control" style="width: 100%;"
+                                                        data-placeholder="Select a project"
+                                                        ng-model="TeleOrgchartDto.GroupID">
+                                                    <option value="00000000-0000-0000-0000-000000000000">All Project</option>
+                                                    <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="text-red">LeaderExtension</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.LeaderExtension" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">LeaderName</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.LeaderName" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="text-red">LeaderEmail</label>
+                                                <input type="text" class="form-control" ng-model="TeleOrgchartDto.LeaderEmail" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 fix-chk-mg">
+                                            <div class="form-group checkbox">
+                                                <label>
+                                                    <input type="checkbox" ng-model="TeleOrgchartDto.IsActive" />
+                                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                                    <span class="label label-success">
+                                                        <b data-toggle="tooltip" title="Active">
+                                                            Active
+                                                        </b>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-green-leaf">
+                                        <i class="fa fa-save"></i>&nbsp;Submit
+                                    </button>
+                                    <button type="button" class="btn btn-pinterest" data-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="~/Scripts/Controller/RecordsController.js"></script>
+<!-- bootstrap time picker -->
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        var currentDate = new Date();
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+            orientation: 'bottom'
+        });
+
+        $('.select2').select2();
+        //Timepicker
+        $('.timepicker').timepicker({
+            showInputs: false,
+            minuteStep: 1
+        });
+
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+    })
+</script>

@@ -1,0 +1,653 @@
+﻿@{
+    ViewBag.Title = "Up Sale Cross Sale";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+
+<style type="text/css">
+    .dateControl {
+    }
+
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 500px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tbUpSaleCrossSale th {
+        text-align: center;
+        vertical-align: middle;
+        background-color: #B9DFFC;
+    }
+
+    #tbUpSaleCrossSale td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-col {
+        background-color: #C2EEFA;
+    }
+
+    .success-input {
+        border-color: #00a65a;
+    }
+
+    .error-input {
+        border-color: #dd4b39;
+    }
+
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+    .tr_odd {
+        background-color: #FCF5B9;
+    }
+    .color-col-monthly {
+        background-color: #F9D329;
+    }
+    .monthControl {
+    }
+</style>
+<div class="ng-cloak" ng-controller="UpSaleCrossSaleController">
+    <section class="content-header">
+        <h1>
+            Up Sale Cross Sale
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Up Sale Cross Sale</li>
+        </ol>
+    </section>
+    <section class="content">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Search</h3>
+                <div class="box-tools pull-right">                    
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+                <form ng-submit="SearchUpSaleCrossSale()" name="formSearch" method="get">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Agent Name</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlName" ng-model="SearchParam.Name">
+                                    <option ng-repeat="item in SalemanPOList" value="{{item.Agent}}">{{item.Agent}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Group</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlGroup" ng-model="SearchParam.GroupCode">
+                                    <option ng-repeat="item in GroupSalemanPOList" value="{{item.GroupCode}}">{{item.GroupCode}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Range months</label>
+                                <select class="form-control select2" style="width: 100%;"
+                                        id="ddlRangeMonth" ng-model="SearchParam.RangeMonth">
+                                    <option ng-repeat="item in RangeMonths" value="{{item.value}}">{{item.label}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2" ng-show="SearchParam.RangeMonth == 'ONE'">
+                            <div class="form-group">
+                                <label>Month</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control monthControl" id="dtMonthly" ng-model="SearchParam.Monthly"
+                                           data-format="mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2" ng-show="SearchParam.RangeMonth == 'MANY'">
+                            <div class="form-group">
+                                <label>From Month</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control monthControl" id="dtFromMonth" ng-model="SearchParam.FromMonth"
+                                           data-format="mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2" ng-show="SearchParam.RangeMonth == 'MANY'">
+                            <div class="form-group">
+                                <label>To Month</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="text" class="form-control monthControl" id="dtToMonth" ng-model="SearchParam.ToMonth"
+                                           data-format="mm-yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-block btn-info btn-sm">
+                                    Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-pinterest btn-sm" ng-click="ClearSearchParam()">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-primary btn-sm"
+                                        data-backdrop="static" data-keyboard="false"
+                                        title="Upload sale man and calls handle"
+                                        data-toggle="modal" data-target="#mdSalemanPOText">
+                                    Upload call &amp; saleman
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-1" ng-show="SearchParam.RangeMonth == 'ONE'">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-success btn-sm" ng-click="ProcessDataSale()">
+                                    <i class="fa fa-gears"></i>&nbsp;Process
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-warning btn-sm" title="Upload data sale"
+                                        data-backdrop="static" data-keyboard="false"
+                                        data-toggle="modal" data-target="#mdDataSaleCSUS">
+                                    <i class="fa fa-cloud-upload"></i> Upload data sale
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2 pull-right">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-block btn-success btn-sm" ng-click="ExportResult()">
+                                    <i class="fa fa-file-excel-o"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="form-group pull-left">
+                        <simple-pagination current-page="settings.currentPage"
+                                           offset="settings.offset"
+                                           page-limit="settings.pageLimit"
+                                           page-limits="settings.pageLimits"
+                                           on-update="callback()"
+                                           total="UpSaleCrossSaleList.length"></simple-pagination>
+                    </div>
+                    <div class="col-md-4 pull-right">
+                        <div class="form-group">
+                            <strong class="text-red">Total rows : {{totalItems}}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Up Sale Cross Sale List -->
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">Up Sale Cross Sale</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12 table-responsive no-padding">
+                    <table id="tbUpSaleCrossSale" class="table table-bordered">
+                        <thead>
+                            <tr class="text-info">
+                                <th class="color-col-monthly">Month</th>
+                                <th>Name</th>
+                                <th>Agent user</th>
+                                <th>Team</th>
+                                <th>Group</th>
+                                <th>Total calls handled (1)</th>
+                                <th>Total order calls <br />(~75%) (2)</th>
+                                <th>Total order calls <br/>(phone orders placed <br/>by direct customer - <br />~51%) (3)</th>
+                                <th>Total successful calls <br/>which are approached <br />cross-sales <br />& up-sales - PO (4)</th>
+                                <th>% successful calls <br/>(target 2018: 22%) (5)</th>
+                                <th>Successful orders <br/>with cross-sales <br />& up-sales-SO (6)</th>
+                                <th>Sales value of <br />cross-sales <br />& up-sales orders (7)</th>                                
+                                <th>Total successful invoice <br />which are approached <br />cross-sales <br />& up-sales - INV (8)</th>
+                                <th>Successful customers <br />who are approached <br />cross-sales & upsales (9)</th>
+                                <th>Sales value of <br/>cross-sales <br />& up-sales orders <br />by Itemnotes (10)</th>
+                                <th>Total Invoice (11)</th>
+                                <th>CreateDate</th>
+                                <th>CreateBy</th>
+                                <th>UpdateDate</th>
+                                <th>UpdateBy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in filterData = (UpSaleCrossSaleList | limitTo:settings.pageLimit:settings.offset)"
+                                data-toggle="tooltip" title="{{item.Monthly}} | {{item.Name}} | {{item.Team}} | {{item.GroupCode}}"
+                                ng-class-odd="'tr_odd'" ng-class-even="">
+                                <td>{{item.Monthly}}</td>
+                                <td>{{item.Name}}</td>
+                                <td>{{item.AgentUser}}</td>
+                                <td>{{item.Team}}</td>
+                                <td>{{item.GroupCode}}</td>
+                                <td class="text-right">{{item.TotalCallsHandle | number}}</td> <!-- 1 -->
+                                <td class="text-right">{{item.TotalOrderCalls75 | number}}</td> <!-- 2 -->
+                                <td class="text-right">{{item.PhoneOrdersDirectCustomer51 | number:2}}</td><!-- 3 -->
+                                <td class="text-right">{{item.ApproachedCSUP | number}}</td><!-- 4 -->
+                                <td class="text-right">{{item.SuccessfulCalls | number:2}}&nbsp;<strong class="text-aqua">%</strong></td><!-- 5 -->
+                                <td class="text-right">{{item.SuccessfulOrderCSUP | number}}</td><!-- 6 -->
+                                <td class="text-right">{{item.SalesValueCSUP | number:0}}</td><!-- 7 -->
+                                <td class="text-right">{{item.SuccessfulInvoiceApproachedCSUS | number}}</td><!-- 8 -->
+                                <td class="text-right">{{item.SuccessfulCustomersApproachedCSUS | number}}</td><!-- 9 -->
+                                <td class="text-right">{{item.SalesValueOrderItemnote | number:0}}</td><!-- 10 -->
+                                <td class="text-right">{{item.TotalInvoices | number}}</td><!-- 11 -->
+                                <td>{{item.CreateDate}}</td>
+                                <td>{{item.CreateBy}}</td>
+                                <td>{{item.UpdateDate}}</td>
+                                <td>{{item.UpdateBy}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Up Sale Cross Sale List -->
+    </section>
+    <!-- MODAL DIALOG -->
+    <div id="mdSalemanPOText" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 70%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Data calls & Sale man PO</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="text-red">File type *</label>
+                                            <select class="form-control select2" style="width: 100%;"
+                                                    id="ddlDataFileType" ng-model="DataFileType">
+                                                <option value="DATACALL">Data calls</option>
+                                                <option value="SALEMAN">Sale man POText</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" ng-show="DataFileType == 'SALEMAN'">
+                                        <div class="form-group">
+                                            <label>File Saleman POText</label>
+                                            <input type="file" class="form-control" id="txtSalemanPOFile"
+                                                   upload-file="SalemanPOFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" ng-show="DataFileType == 'DATACALL'">
+                                        <div class="form-group">
+                                            <label>File Data Calls</label>
+                                            <input type="file" class="form-control" id="txtDataCallsFile"
+                                                   upload-file="DataCallsFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label class="text-red">Month *</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control monthControl" id="dtDataCallsMonthly" ng-model="DataCallsModel.Monthly"
+                                                       data-format="mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary btn-sm pull-left"
+                                        data-backdrop="static" data-keyboard="false"
+                                        ng-show="DataFileType == 'DATACALL'"
+                                        data-toggle="modal" data-target="#mdDataCall">
+                                    View data call
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm pull-left"
+                                        data-backdrop="static" data-keyboard="false"
+                                        ng-show="DataFileType == 'SALEMAN'"
+                                        data-toggle="modal" data-target="#mdSalemanPO">
+                                    View sale man PO
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" ng-click="UploadDataCallsOrSalemanPO()">
+                                    <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Upload data sale daily month -->
+    <div id="mdDataSaleCSUS" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 60%; margin: 30px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Data sale</h4>
+                </div>
+                <form name="MedicalForm">
+                    <div class="modal-body">
+                        <div class="box box-success">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-7">
+                                        <div class="form-group">
+                                            <label>File</label>
+                                            <input type="file" class="form-control" id="txtDataSale"
+                                                   upload-file="DataSaleFile"
+                                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                        </div>
+                                    </div>
+                                    @*<div class="col-md-2 fix-chk-mg">
+                                        <div class="form-group">
+                                            <button type="button" class="btn btn-warning btn-sm" ng-click="UploadDataSale()">
+                                                <i class="fa fa-cloud-upload"></i>&nbsp;Upload
+                                            </button>
+                                        </div>
+                                    </div>*@
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="text-red">Month (use for delete)</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control monthControl" id="dtDeleteMonth" ng-model="DeleteDataSale.Month"
+                                                       data-format="mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-warning btn-sm pull-left" ng-click="DeleteDataSale()">
+                                    <i class="fa fa-trash-o"></i>&nbsp;Delete
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" ng-click="UploadAndSaveDataSales()">
+                                    <i class="fa fa-save"></i>&nbsp;Save
+                                </button>
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Data sale -->
+    <!-- END MODAL -->
+    <!-- Data sale & sale man po text -->
+    <div id="mdSalemanPO" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 80%; margin: 15px auto;">
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Data saleman PO</h4>
+                </div>
+                <form name="ProjectDataPickForm" method="post">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <div class="col-md-12">
+                                    <div class="col-md-1" style="margin-top: 25px;">
+                                        <div class="form-group">
+                                            <button class="btn btn-green-leaf btn-block btn-sm" ng-click="GetDataCallSaleman()"><strong>Show</strong></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2" style="margin-top: 25px;">
+                                        <div class="form-group">
+                                            <label class="text-red">Total rows : {{totalRows}} rows</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 table-responsive no-padding">
+                                    <table id="tblSalemanPOText" class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>PERNR</th>
+                                                <th>Agent</th>
+                                                <th>Team</th>
+                                                <th>GroupCode</th>
+                                                <th>POText</th>
+                                                <th>UserLoginId</th>
+                                                <th>LoginEmail</th>
+                                                <th>SAPExtension</th>
+                                                <th>AgentName</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in filter = (SalemanPOTextList)"
+                                                ng-class="(item.POText | uppercase) == 'OFF' || (item.SAPExtension | uppercase) == 'OFF' || (item.AgentName | uppercase) == 'OFF' ? 'text-red' : ''">
+                                                <td>{{item.PERNR}}</td>
+                                                <td>{{item.Agent}}</td>
+                                                <td>{{item.Team}}</td>
+                                                <td>{{item.GroupCode}}</td>
+                                                <td>{{item.POText}}</td>
+                                                <td>{{item.UserLoginId}}</td>
+                                                <td>{{item.LoginEmail}}</td>
+                                                <td>{{item.SAPExtension}}</td>
+                                                <td>{{item.AgentName}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="col-md-12">        
+                            <div class="pull-right">
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="mdDataCall" class="modal fade" role="dialog">
+        <div class="modal-dialog" style="width: 80%; margin: 15px auto;">
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-info">Data call</h4>
+                </div>
+                <form name="ProjectDataPickForm" method="post">
+                    <div class="modal-body">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"></h3>
+                                <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="box-body fix-modal-body">
+                                <div class="col-md-12">                                    
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label>Month</label>
+                                            <div class="input-group date">
+                                                <div class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </div>
+                                                <input type="text" class="form-control monthControl" id="dtMon" ng-model="DataCallSaleman.Monthly"
+                                                       data-format="mm-yyyy" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1" style="margin-top: 25px;">
+                                        <div class="form-group">
+                                            <button class="btn btn-green-leaf btn-block btn-sm" ng-click="GetDataCallSaleman()"><strong>Show</strong></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2" style="margin-top: 25px;">
+                                        <div class="form-group">
+                                            <label class="text-red">Total rows : {{totalRows}} rows</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 table-responsive no-padding">
+                                    <table id="tblDataCall" class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>AgentId</th>
+                                                <th>AgentName</th>
+                                                <th>Extension</th>
+                                                <th>IntervalStartTime</th>
+                                                <th>IntervalEndTime</th>
+                                                <th>TotalLoggedInTime</th>
+                                                <th>CallPresented</th>
+                                                <th>CallHandled</th>
+                                                <th>CallbackPresent</th>
+                                                <th>CallbackHandled</th>
+                                                <th>TotalCallsPresented</th>
+                                                <th>TotalCallsHandled</th>
+                                                <th>CallRatio</th>
+                                                <th>AverageReservedTime</th>
+                                                <th>ReadyTimeTalkTime</th>
+                                                <th>PercentReadyTimeTalkTime</th>
+                                                <th>Monthly</th>
+                                                <th>UpdateBy</th>
+                                                <th>UpdateDate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="item in filter = (DataCallList)">
+                                                <td>{{$index + 1}}</td>
+                                                <td>{{item.AgentId}}</td>
+                                                <td>{{item.AgentName}}</td>
+                                                <td title="Extension: {{item.Extension}}-{{item.AgentName}}">{{item.Extension}}</td>
+                                                <td title="IntervalStartTime: {{item.Extension}}-{{item.AgentName}}">{{item.IntervalStartTime}}</td>
+                                                <td title="IntervalEndTime: {{item.Extension}}-{{item.AgentName}}">{{item.IntervalEndTime}}</td>
+                                                <td title="TotalLoggedInTime: {{item.Extension}}-{{item.AgentName}}">{{item.TotalLoggedInTime}}</td>
+                                                <td title="CallPresented: {{item.Extension}}-{{item.AgentName}}">{{item.CallPresented}}</td>
+                                                <td title="CallHandled: {{item.Extension}}-{{item.AgentName}}">{{item.CallHandled}}</td>
+                                                <td title="CallbackPresent: {{item.Extension}}-{{item.AgentName}}">{{item.CallbackPresent}}</td>
+                                                <td title="CallbackHandled: {{item.Extension}}-{{item.AgentName}}">{{item.CallbackHandled}}</td>
+                                                <td title="TotalCallsPresented: {{item.Extension}}-{{item.AgentName}}">{{item.TotalCallsPresented}}</td>
+                                                <td title="TotalCallsHandled:{{item.Extension}}- {{item.AgentName}}">{{item.TotalCallsHandled}}</td>
+                                                <td title="CallRatio: {{item.Extension}}-{{item.AgentName}}">{{item.CallRatio}}</td>
+                                                <td title="AverageReservedTime: {{item.Extension}}-{{item.AgentName}}">{{item.AverageReservedTime}}</td>
+                                                <td title="ReadyTimeTalkTime: {{item.Extension}}-{{item.AgentName}}">{{item.ReadyTimeTalkTime}}</td>
+                                                <td title="PercentReadyTimeTalkTime: {{item.Extension}}-{{item.AgentName}}">{{item.PercentReadyTimeTalkTime}}</td>
+                                                <td>{{item.Monthly}}</td>
+                                                <td>{{item.UpdateBy}}</td>
+                                                <td>{{item.UpdateDate}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="col-md-12">
+                            <div class="pull-right">
+                                <button type="button" class="btn btn-pinterest btn-sm" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End -->
+</div>
+<script src="/Scripts/Controller/UpSaleCrossSaleController.js"></script>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('[data-mask]').inputmask();
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+
+        $('.monthControl').datepicker({
+            autoclose: true,
+            format: 'mm-yyyy',
+            viewMode: "months",
+            minViewMode: "months",
+            useCurrent: true,
+        });
+    });
+</script>

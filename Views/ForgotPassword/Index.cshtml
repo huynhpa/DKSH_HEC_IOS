@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Reset Password";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div ng-cloak ng-controller="ResetPasswordController">
+    <section class="content-header">
+        <h1>
+            Reset Password
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Reset Password</li>
+        </ol>
+    </section>
+    <section class="content">
+        <form id="resetPassForm" method="post" ng-submit="ResetPassword()">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Search</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>New password</label>
+                                <input type="password" class="form-control" ng-model="ResetPassword.NewPassword" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Confirm new password</label>
+                                <input type="password" class="form-control" ng-model="ResetPassword.ConfirmPassword" />
+                            </div>
+                        </div>
+                    </div>                                    
+                    <div class="col-md-12 pull-left">
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary" title="Reset password">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+</div>
+<script src="/Scripts/Controller/ResetPasswordController.js"></script>
+<!-- END MODAL -->
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd',
+            todayHighlight: true,
+        });
+
+        $('.select2').select2();
+    })
+</script>

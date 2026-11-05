@@ -1,0 +1,237 @@
+﻿@{
+    ViewBag.Title = "Customer Info";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userDto = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"]; 
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #tblCustomer th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #tblCustomer td {
+        vertical-align: middle;
+    }
+    .color-col {
+        background-color: #C2EEFA;
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+    .dateControl { }
+    .editor { }
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+    .tr_odd {
+        background-color: #BDF4FE;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+        $('.select2').select2();
+    })
+</script>
+<div class="ng-cloak" ng-controller="CustomerController">
+<section class="content-header">
+    <h1>Customer Information
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">Customer Information</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <form ng-submit="SearchCustomer()" name="formSearch" method="get">
+                <div class="col-md-12">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Customer Code</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.CustCode" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>VNZ0Code</label>
+                            <input type="text" class="form-control" id="txtVNZ0Code" ng-model="SearchParam.VNZ0Code" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>BravoCode</label>
+                            <input type="text" class="form-control" id="txtBravoCode" ng-model="SearchParam.BravoCode" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.CustName" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Region</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.Region" />
+                        </div>
+                    </div>                    
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>District</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.District" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Address</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.Addr" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Province</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.Province" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Channel</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.Channel" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>TaxCode</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.TaxCode" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>CGrpCode</label>
+                            <input type="text" class="form-control" ng-model="SearchParam.CGrpCode" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-block btn-sm btn-success">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-pinterest" ng-click="resetForm()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="col-md-12">
+                <div class="col-md-6 pull-left">
+                    <div class="form-group">
+                        <simple-pagination current-page="settings.currentPage"
+                                           offset="settings.offset"
+                                           page-limit="settings.pageLimit"
+                                           page-limits="settings.pageLimits"
+                                           on-update="callback()"
+                                           total="ListCustomer.length"></simple-pagination>
+                    </div>
+                </div>
+                <div class="col-md-4 pull-right">
+                    <div class="form-group">
+                        <strong class="text-red">Last updated date : {{LastUpdateDate}}</strong>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Customer Information</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <table id="tblCustomer" class="table table-bordered">
+                    <thead>
+                        <tr class="bg-light-blue-active">
+                            <th>Customer code</th>
+                            <th>Customer name</th>
+                            <th>Address</th>
+                            <th>CGrpCode</th>
+                            <th>CGrpName</th>
+                            <th>District</th>
+                            <th>ZTerm</th>
+                            <th>Province</th>
+                            <th>Region</th>
+                            <th>Channel</th>
+                            <th>TaxCode</th>
+                            <th>Tel</th>                            
+                            <th>SortItem</th>                         
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListCustomer | limitTo:settings.pageLimit:settings.offset)"
+                            ng-class-odd="'tr_odd'" ng-class-even="">
+                            <td>{{item.CustCode}}</td>
+                            <td>{{item.CustName}}</td>                            
+                            <td>{{item.Addr}}</td>
+                            <td>{{item.CGrpCode}}</td>
+                            <td>{{item.CGrpName}}</td>
+                            <td>{{item.District}}</td>
+                            <td>{{item.ZTerm}}</td>
+                            <td>{{item.Province}}</td>
+                            <td>{{item.Region}}</td>
+                            <td>{{item.Channel}}</td>
+                            <td>{{item.TaxCode}}</td>
+                            <td>{{item.Tel}}</td>                            
+                            <td>{{item.SortItem}}</td>                      
+                        </tr>                        
+                    </tbody>
+                </table>
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="ListCustomer.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- MODAL DIALOG -->
+<!-- END MODAL -->
+</div>
+<script src="/Scripts/Controller/CustomerController.js"></script>

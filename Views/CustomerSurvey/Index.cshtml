@@ -1,0 +1,415 @@
+﻿@{
+    ViewBag.Title = "Customer survey";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.1/summernote.css" rel="stylesheet">
+<script src="/plugins/Summer-Note/summernote.js"></script>
+<style type="text/css">
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: #dd4b39;
+    }
+
+    .dateControl {
+    }
+
+    .monthControl {
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 600px;
+    }
+
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #tblQuestionnaire th, #tblComment th, #tblCustomerSurveyMark th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    #tblQuestionnaire td, #tblComment td, #tblCustomerSurveyMark td {
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .color-1 {
+        background-color: #7CD8FD;
+    }
+
+    .color-2 {
+        background-color: #85E306;
+    }
+
+    .color-3 {
+        background-color: #F0D10D;
+    }
+    .questionnaire {
+        background-color: #A1E1FA;
+        vertical-align: middle;
+    }
+    .total {
+        background-color: #ED3309;
+        color: white;
+    }
+    .col-remark {
+        background-color: #9FD2F9;
+    }
+</style>
+<div class="ng-cloak" ng-controller="CustomerSurveyController">
+    <section class="content-header">
+        <h1>
+            QUESTIONNAIRE - CUSTOMER SATISFACTION SURVEY BY PHONE
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Pharmacy</li>
+        </ol>
+    </section>
+    <section class="content">
+        <!-- Customer information -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">Customer Info</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="col-md-12">
+                    @if (userSession != null && userSession.RoleId.Equals("ADMIN")) {
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <a href="@Url.Action("Question", "CustomerSurvey")" class="btn btn-success btn-block">Question</a>
+                        </div>
+                    </div>
+                    }
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <a href="@Url.Action("SurveyList", "CustomerSurvey")" class="btn btn-primary btn-block">Survey History</a>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-right">
+                        <button type="button" class="btn btn-success" ng-click="Save()">Submit</button>
+                        <button type="button" class="btn btn-pinterest" ng-click="ClearModel()">Clear</button>                        
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-red">Agent name * </label>
+                            <select class="form-control select2" style="width: 100%;"
+                                    id="ddlGroup" ng-model="CustomerSurveyModel.UserSurvey">
+                                <option ng-repeat="item in iMindAgents" value="{{item.user_id}}">{{item.user_id}}-{{item.agent_name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="text-red">User group * </label>
+                            <select class="form-control select2" style="width: 100%;"
+                                    id="ddlGroup" ng-model="CustomerSurveyModel.UserGroup">
+                                <option ng-repeat="item in UserGroups" value="{{item.groupcode}}">{{item.groupname}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Ngày / Date</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl" id="dtToDate" ng-model="CustomerSurveyModel.SurveyDate"
+                                       data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">                    
+                    <form method="get" ng-submit="GetCustomerByCustCode()" name="formSearch">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="text-red">Mã khách hàng / Customer code *</label>
+                                <input type="text" class="form-control"
+                                       ng-model="CustomerSurveyModel.CustCode" id="txtCustCode" />
+                            </div>
+                        </div>
+                    </form>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="text-light-blue">Tên khách hàng / Customer name</label>
+                            <input type="text" class="form-control" ng-model="CustomerSurveyModel.CustName" id="txtCustName" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="text-light-blue">Điện thoại / Tel</label>
+                            <input type="text" class="form-control" ng-model="CustomerSurveyModel.Tel" id="txtTel" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="text-light-blue">Tên người liên hệ / Contact name</label>
+                            <input type="text" class="form-control" ng-model="CustomerSurveyModel.ContactName" id="txtContactName" />
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-group">
+                            <label class="text-light-blue">Địa chỉ / Address</label>
+                            <input type="text" class="form-control" ng-model="CustomerSurveyModel.Address" id="txtAddress" />
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- Customer information -->
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">BẢNG CÂU HỎI / QUESTIONNAIRE</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div>
+            <form name="questionnaireForm" method="post" ng-submit="Save()">
+                <div class="box-body">
+                    <div class="col-md-12 table-responsive no-padding">
+                        <table id="tblQuestionnaire" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        Bảng câu hỏi<br />
+                                        <label class="text-green">Questionnaire</label>
+                                    </th>
+                                    <th>
+                                        Điểm đánh giá<br />
+                                        <label class="text-green">Remark</label>
+                                    </th>
+                                    <th>
+                                        Thang điểm chuẩn<br />
+                                        <label class="text-green">Rank mark</label>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Trung tâm chăm sóc khách hàng / Customer Call Center -->
+                                <tr class="questionnaire">
+                                    <td colspan="2">
+                                        <label>Trung tâm chăm sóc khách hàng / </label>
+                                        <label class="text-green">Customer Call Center</label>
+                                    </td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                </tr>
+                                <tr ng-repeat="item in filterData = (Questionnaire.CustomerCareCenter)">
+                                    <td>{{item.QuestionChildId}}</td>
+                                    <td style="word-wrap: break-word; white-space: normal;">
+                                        {{item.QuestionVN}}<br />
+                                        <label class="text-aqua">{{item.QuestionEN}}</label>
+                                    </td>
+                                    <td class="text-center">
+                                        <span ng-if="item.RankMark != null">
+                                            <input type="number" max="10" min="0" class="form-control" id="txtRemarkCCC_{{$index}}" />
+                                        </span>
+                                        <span ng-if="item.RankMark == null">
+                                            <input type="number" style="display:none;" max="10" min="0" value="0"
+                                                   class="form-control" id="txtRemarkCCC_{{$index}}" />
+                                        </span>
+                                    </td>
+                                    <td class="text-center">{{item.RankMark}}</td>
+                                </tr>
+                                <!-- Giao Hàng / Transportation -->
+                                @*<tr class="questionnaire">
+                                    <td colspan="2">
+                                        <label>Giao Hàng / </label>
+                                        <label class="text-green">Transportation</label>
+                                    </td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                </tr>
+                                <tr ng-repeat="item in filterData = (Questionnaire.Transportation)">
+                                    <td style="white-space:nowrap !important">{{item.QuestionChildId}}</td>
+                                    <td>
+                                        {{item.QuestionVN}}<br />
+                                        <label class="text-aqua">{{item.QuestionEN}}</label>
+                                    </td>
+                                    <td class="text-center">
+                                        <span ng-if="item.RankMark != null">
+                                            <input type="number" max="10" min="0" class="form-control" id="txtRemarkTransportation_{{$index}}" />
+                                        </span>
+                                        <span ng-if="item.RankMark == null">
+                                            <input type="number" style="display:none;" max="10" min="0" value="0"
+                                                   class="form-control" id="txtRemarkTransportation_{{$index}}" />
+                                        </span>
+                                    </td>
+                                    <td class="text-center">{{item.RankMark}}</td>
+                                </tr>*@
+                                <!-- Công Nợ / Credit (apply for credit customer) -->
+                                @*<tr class="questionnaire">
+                                    <td colspan="2">
+                                        <label>Công Nợ / </label>
+                                        <label class="text-green">Credit (apply for credit customer)</label>
+                                    </td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                </tr>
+                                <tr ng-repeat="item in filterData = (Questionnaire.Credit)">
+                                    <td style="white-space:nowrap !important">{{item.QuestionChildId}}</td>
+                                    <td>
+                                        {{item.QuestionVN}}<br />
+                                        <label class="text-aqua">{{item.QuestionEN}}</label>
+                                    </td>
+                                    <td class="text-center">
+                                        <span ng-if="item.RankMark != null">
+                                            <input type="number" max="10" min="0" class="form-control" id="txtRemarkCredit_{{$index}}" />
+                                        </span>
+                                        <span ng-if="item.RankMark == null">
+                                            <input type="number" style="display:none;" max="10" min="0" value="0"
+                                                   class="form-control" id="txtRemarkCredit_{{$index}}" />
+                                        </span>
+                                    </td>
+                                    <td class="text-center">{{item.RankMark}}</td>
+                                </tr>*@
+                                <!-- Trình Dược Viên / Sales Rep -->
+                                @*<tr class="questionnaire">
+                                    <td colspan="2">
+                                        <label>Trình Dược Viên / </label>
+                                        <label class="text-green">Sales Rep</label>
+                                    </td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                </tr>
+                                <tr ng-repeat="item in filterData = (Questionnaire.SalesRep)">
+                                    <td style="white-space:nowrap !important">{{item.QuestionChildId}}</td>
+                                    <td>
+                                        {{item.QuestionVN}}<br />
+                                        <label class="text-aqua">{{item.QuestionEN}}</label>
+                                    </td>
+                                    <td class="text-center">
+                                        <span ng-if="item.RankMark != null">
+                                            <input type="number" max="10" min="0" class="form-control" id="txtRemarkSalesRep_{{$index}}" />
+                                        </span>
+                                        <span ng-if="item.RankMark == null">
+                                            <input type="number" style="display:none;" max="10" min="0" value="0"
+                                                   class="form-control" id="txtRemarkSalesRep_{{$index}}" />
+                                        </span>
+                                    </td>
+                                    <td class="text-center">{{item.RankMark}}</td>
+                                </tr>
+                                <tr class="total">
+                                    <td colspan="2" class="text-center"><label>Total of mark</label></td>
+                                    <td class="text-center"><label></label></td>
+                                    <td class="text-center"><label>{{TotalRankMark}}</label></td>
+                                </tr>*@
+                            </tbody>
+                        </table>
+                        <table id="tblComment" class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td style="width : 20%">
+                                        <label>Nhận xét của khách hàng / </label>
+                                        <label class="text-aqua">Customer's comment</label>
+                                    </td>
+                                    <td>
+                                        <textarea id="txtComment" placeholder="Please place customer's opinion in here..."
+                                                  rows="3" style="width:100%"></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Submit</button>
+                    <button type="button" class="btn btn-pinterest" ng-click="ClearModel()">Clear</button>
+                </div>
+            </form>
+        </div>
+        <div id="mdCustomerSurveyMark" class="modal fade" role="dialog">
+            <div class="modal-dialog" style="width: 80%; margin: 20px auto;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-aqua"><strong>{{Customer.CustCode}}-{{Customer.CustName}}-{{Customer.SurveyDate}}, Total mark : {{Customer.TotalMark}}</strong></h4>
+                    </div>
+                    <form name="CustomerSurveyMarkForm" method="get">
+                        <div class="modal-body fix-modal-body">
+                            <div class="box box-success">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title"></h3>
+                                    <div class="box-tools pull-right">
+                                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="box-body">
+                                    <div class="col-md-12 table-responsive no-padding">
+                                        <table id="tblCustomerSurveyMark" class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>RankMark</th>
+                                                    <th class="col-remark">Remark</th>
+                                                    <th>Title</th>
+                                                    <th>Question No</th>
+                                                    <th>Question</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr ng-repeat="item in filterData = (CustomerSurveyMark)"
+                                                    data-toggle="tooltip" title="Remark : {{item.Remark}} / {{item.RankMark}}">
+                                                    <td class="text-right text-bold">{{item.RankMark}}</td>
+                                                    <td class="col-remark text-right text-bold">{{item.Remark}}</td>
+                                                    <td>{{item.QuestionnaireTitleId}}</td>
+                                                    <td>{{item.QuestionChildId}}</td>
+                                                    <td>
+                                                        {{item.QuestionVN}}
+                                                        <p class="text-aqua">{{item.QuestionEN}}</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-pinterest" data-dismiss="modal">Close</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/Scripts/Controller/CustomerSurveyController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true
+        });
+        $('.dateControl').datepicker('setDate', today);
+        $('.editor').summernote({
+            height: 150,
+            minHeight: null,
+            maxHeight: null
+        });
+        $('.select2').select2();
+    })
+</script>
+
+

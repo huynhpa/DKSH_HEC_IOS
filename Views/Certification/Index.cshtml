@@ -1,0 +1,962 @@
+﻿@{
+    ViewBag.Title = "Certification";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.UserDto)Session["USER_SESSION"];
+}
+<style type="text/css">
+    th, td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    table tr th {
+        text-align: center;
+    }
+    #certificationList th {
+        text-align: center;
+        vertical-align: middle;
+    }
+    #certificationList td {
+        vertical-align: middle;
+    }
+    .color-col {
+        background-color: #C2EEFA;
+    }
+    .fix-modal-body {
+        overflow-y: scroll;
+        max-height: 550px;
+    }
+    .dateControl { }
+    .fix-chk-mg {
+        margin-top: 22px;
+    }
+    .margin-top-25 {
+        margin-top: 25px;
+    }
+</style>
+
+<script src="/Scripts/Controller/CertificationController.js"></script>
+<div ng-cloak ng-controller="CertificationController">
+<section class="content-header">
+    <h1>
+        Certification Management
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active">Certification Management</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="col-md-12">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Customer code</label>
+                        <input type="text" class="form-control" id="txtCustCode" ng-model="certificateSearch.CustCode" ng-change="SetPaging()" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label>Expired YES/NO</label>
+                    <select class="form-control select2" style="width: 100%;" ng-model="certificateSearch.ExpiredYN">
+                        <option value="0">NOT YET</option>
+                        <option value="1">EXPIRED</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Certification type</label>
+                        <select class="form-control select2" style="width: 100%;" ng-model="certificateSearch.Certification">
+                            <option value="GCNDDKKDD">GCN ĐĐKKDD</option>
+                            <option value="GPP">GPP</option>
+                            <option value="GDP">GDP</option>
+                            <option value="GSP">GSP</option>
+                            <option value="KCB">KCB</option>
+                            <option value="KSDB">GCN KSDB (Codein/Ultracet)</option>
+                            <option value="COETTBYT">COE of TTBYT</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>CGrpCode</label>
+                        <input type="text" class="form-control" ng-model="certificateSearch.CGrpCode" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>User Id</label>
+                        <select class="form-control select2" style="width:100%"
+                                data-placeholder="Select a user" 
+                                ng-model="certificateSearch.UserId">
+                            @foreach (var user in ViewBag.UserTeamCDI)
+                            {
+                                <option value="@user.UserId">@user.UserName</option>
+                            }
+                        </select>
+                    </div>
+                </div>                
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <div class="form-group checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="certificateSearch.IsDelete" />
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="label label-danger"><b>IS DELETE</b></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                @*@if (userSession != null && userSession.Team.Equals("CDI"))
+                {*@
+                <div class="col-md-2 pull-right">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-success" id="btnAdd"
+                                data-backdrop="static" data-keyboard="false" ng-click="InsertCer()"
+                                data-toggle="modal" data-target="#mdCertificate">New</button>
+                    </div>
+                </div>
+                @*}*@
+                <div class="col-md-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-primary" ng-click="searchCertification()">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-2 pull-left">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-block btn-warning" id="btnReset" ng-click="ResetForm()">
+                            Clear
+                        </button>
+                    </div>
+                </div>                
+            </div>
+            <div class="col-md-12">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <h5>
+                            <label>
+                                <span class="label label-info"><b>{{totalItems}}</b></span>&nbsp;&nbsp;record(s)
+                            </label>
+                        </h5>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>
+    <!-- Certification -->
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title text-aqua text-bold">Certification List</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="certificateList.length"></simple-pagination>
+                <table id="certificationList" class="table table-bordered">
+                    <thead>
+                        <tr>
+                            @*@if (userSession != null && userSession.Team.Equals("CDI"))
+                            {*@
+                            <th rowspan="2">Action</th>
+                            @*}*@
+                            <th rowspan="2">Customer Code</th>
+                            <th rowspan="2">Create By</th>
+                            <th rowspan="2">Create Date</th>
+                            <th rowspan="2">Update By</th>
+                            <th rowspan="2">Update Date</th>
+                            <th rowspan="2">Sent Date</th>
+                            <th rowspan="2">Is Valid Certification</th>
+                            <th colspan="5" class="color-col">GCN ĐĐKKDD</th>
+                            <th colspan="5">GPP</th>
+                            <th colspan="5" class="color-col">GDP</th>
+                            <th colspan="5">GSP</th>
+                            <th colspan="5" class="color-col">Giấy phép hoạt động KCB</th>
+                            <th colspan="5">Giấy chứng nhận KSDB (Codein/Ultracet)</th>
+                            <th colspan="5" class="color-col">COE of TTBYT</th>
+                        </tr>
+                        <tr>
+                            <th class="color-col">From</th>
+                            <th class="color-col">To</th>
+                            <th class="color-col">Status</th>
+                            <th class="color-col">Remaining Days</th>
+                            <th class="color-col">DDKKDD YES/NO</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Remaining Days</th>
+                            <th>GPP YES/NO</th>
+                            <th class="color-col">From</th>
+                            <th class="color-col">To</th>
+                            <th class="color-col">Status</th>
+                            <th class="color-col">Remaining Days</th>
+                            <th class="color-col">GDP YES/NO</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Remaining Days</th>
+                            <th>GSP YES/NO</th>
+                            <th class="color-col">From</th>
+                            <th class="color-col">To</th>
+                            <th class="color-col">Status</th>
+                            <th class="color-col">Remaining Days</th>
+                            <th class="color-col">KCB YES/NO</th>
+                            <th>From</th>
+                            <th>To </th>
+                            <th>Status</th>
+                            <th>Remaining Days</th>
+                            <th>KSDB (Codein/Ultracet) YES/NO</th>
+                            <th class="color-col">From</th>
+                            <th class="color-col">To</th>
+                            <th class="color-col">Status</th>
+                            <th class="color-col">Remaining Days</th>
+                            <th class="color-col">COE of TTBYT YES/NO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (certificateList | filter : {CustCode: certificateSearch.CustCode} | limitTo:settings.pageLimit:settings.offset)">
+                            @*@if (userSession != null && userSession.Team.Equals("CDI"))
+                            {*@
+                            <td>
+                                <span><button type="submit" class="btn btn-primary" ng-click="getCertificateDetail(item.CustCode)" data-toggle="modal" data-target="#mdCertificate"><i class="fa fa-edit"></i></button></span>
+                                <span><button type="submit" class="btn btn-danger" ng-click="Unused(item.CustCode)"><i class="fa fa-trash"></i></button></span>
+                            </td>
+                            @*}*@
+                            <td>{{item.CustCode}}</td>
+                            <td>{{item.CreateBy}}</td>
+                            <td>{{item.CreateDate}}</td>
+                            <td>{{item.UserId}}</td>
+                            <td>{{item.UpdateDate}}</td>
+                            <td>{{item.SentDate}}</td>
+                            <td class="text-center">
+                                <small class="label" ng-class="item.IsValidCertificate == true ? 'bg-green' : 'bg-yellow'">{{item.IsValidCertificate == true ? 'YES' : 'NO'}}</small>
+                            </td>
+                            <td class="color-col">{{item.GCNDDKKDDFromDate}}</td>
+                            <td class="color-col">{{item.GCNDDKKDDToDate}}</td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.GCNDDKKDDRemainingDays == null && item.GCNDDKKDDFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays > 0 && item.GCNDDKKDDRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays != null && item.GCNDDKKDDRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>                            
+                            <td class="color-col text-center">
+                                <label ng-if="item.GCNDDKKDDRemainingDays == null && item.GCNDDKKDDFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.GCNDDKKDDRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays > 0 && item.GCNDDKKDDRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.GCNDDKKDDRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GCNDDKKDDRemainingDays != null && item.GCNDDKKDDRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.GCNDDKKDDRemainingDays}}</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.IsDDKKDD == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsDDKKDD == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td>{{item.GPPFromDate}}</td>
+                            <td>{{item.GPPToDate}}</td>
+                            <td class="text-center">
+                                <label ng-if="item.GPPRemainingDays == null && item.GPPFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays > 0 && item.GPPRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays != null && item.GPPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.GPPRemainingDays == null && item.GPPFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.GPPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays > 0 && item.GPPRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.GPPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GPPRemainingDays != null && item.GPPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.GPPRemainingDays}}</b></span>
+                                </label>                                
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.IsGPP == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsGPP == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col">{{item.GDPFromDate}}</td>
+                            <td class="color-col">{{item.GDPToDate}}</td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.GDPRemainingDays == null && item.GDPFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays > 0 && item.GDPRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays != null && item.GDPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.GDPRemainingDays == null && item.GDPFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.GDPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays > 0 && item.GDPRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.GDPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GDPRemainingDays != null && item.GDPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.GDPRemainingDays}}</b></span>
+                                </label>                                
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.IsGDP == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsGDP == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td>{{item.GSPFromDate}}</td>
+                            <td>{{item.GSPToDate}}</td>
+                            <td class="text-center">
+                                <label ng-if="item.GSPRemainingDays == null && item.GSPFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays > 0 && item.GSPRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays != null && item.GSPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.GSPRemainingDays == null && item.GSPFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.GSPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays > 0 && item.GSPRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.GSPRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.GSPRemainingDays != null && item.GSPRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.GSPRemainingDays}}</b></span>
+                                </label>
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.IsGSP == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsGSP == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col">{{item.KCBFromDate}}</td>
+                            <td class="color-col">{{item.KCBToDate}}</td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.KCBRemainingDays == null && item.KCBFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays > 0 && item.KCBRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays != null && item.KCBRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.KCBRemainingDays == null && item.KCBFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.KCBRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays > 0 && item.KCBRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.KCBRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.KCBRemainingDays != null && item.KCBRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.KCBRemainingDays}}</b></span>
+                                </label>                                
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.IsKCB == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsKCB == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td>{{item.KSDBFromDate}}</td>
+                            <td>{{item.KSDBToDate}}</td>
+                            <td class="text-center">
+                                <label ng-if="item.KSDBRemainingDays == null && item.KSDBFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays > 0 && item.KSDBRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays != null && item.KSDBRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.KSDBRemainingDays == null && item.KSDBFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.KSDBRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays > 0 && item.KSDBRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.KSDBRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.KSDBRemainingDays != null && item.KSDBRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.KSDBRemainingDays}}</b></span>
+                                </label>                                
+                            </td>
+                            <td class="text-center">
+                                <label ng-if="item.IsKSDB == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsKSDB == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col">{{item.COETTBYTFromDate}}</td>
+                            <td class="color-col">{{item.COETTBYTToDate}}</td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.COETTBYTRemainingDays == null && item.COETTBYTFromDate != null">
+                                    <span class="label label-info"><b>VÔ THỜI HẠN</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays > 90">
+                                    <span class="label label-success"><b>TRÊN 90 NGÀY</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays > 0 && item.COETTBYTRemainingDays < 90">
+                                    <span class="label label-warning"><b>SẮP HẾT HẠN</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays != null && item.COETTBYTRemainingDays <= 0">
+                                    <span class="label label-danger"><b>HẾT HẠN</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.COETTBYTRemainingDays == null && item.COETTBYTFromDate != null">
+                                    <span class="label label-success"><b>∞</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays > 90">
+                                    <span class="label label-success"><b>{{item.COETTBYTRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays > 0 && item.COETTBYTRemainingDays < 90">
+                                    <span class="label label-warning"><b>{{item.COETTBYTRemainingDays}}</b></span>
+                                </label>
+                                <label ng-if="item.COETTBYTRemainingDays != null && item.COETTBYTRemainingDays <= 0">
+                                    <span class="label label-danger"><b>{{item.COETTBYTRemainingDays}}</b></span>
+                                </label>
+                            </td>
+                            <td class="color-col text-center">
+                                <label ng-if="item.IsCOETTBYT == true">
+                                    <span class="label label-success"><b>YES</b></span>
+                                </label>
+                                <label ng-if="item.IsCOETTBYT == false">
+                                    <span class="label label-danger"><b>NO</b></span>
+                                </label>
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                <simple-pagination current-page="settings.currentPage"
+                                  offset="settings.offset"
+                                  page-limit="settings.pageLimit"
+                                  page-limits="settings.pageLimits"
+                                  on-update="callback()"
+                                  total="certificateList.length"></simple-pagination>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- MODAL DIALOG -->
+<div id="mdCertificate" class="modal fade" role="dialog">
+    <form id="register-form" name="formCertificate" ng-submit="Save()" novalidate>
+        <div class="modal-dialog" style="width: 85%; margin: 40px auto;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-red">Certification Register / Update</h4>
+                </div>
+                <div class="modal-body fix-modal-body">
+                    <!-- BEGIN Certification -->
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Certification</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <div class="col-md-3 pull-left">
+                                    <div class="form-group">
+                                        <label>Customer code</label>
+                                        <input type="text" class="form-control" ng-model="certificateData.CustCode" required ng-disabled="isUpdate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Sent Date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.SentDate"
+                                                   data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsValidCertificate" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>Is Valid Certification</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 pull-right">
+                                    <div class="form-group">
+                                        <p></p>
+                                        <button type="button" class="btn btn-primary" ng-click="CalRemainingDays()">Calculate remaining days</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- BEGIN GCN ĐĐKKDD -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsDDKKDD" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>GCN ĐĐKKDD</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GCNDDKKDDFromDate"
+                                                   data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GCNDDKKDDToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <!-- /.form-group -->
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.gcnddkkdd}}"><b>{{certificateData.GCNDDKKDDStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.GCNDDKKDDRemainingDays != ''" class="label {{commonData.StatusCss.gcnddkkdd}}">
+                                                <b>{{certificateData.GCNDDKKDDRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- BEGIN GPP -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsGPP" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>GPP</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GPPFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GPPToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.gpp}}"><b>{{certificateData.GPPStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.GPPRemainingDays != ''" class="label {{commonData.StatusCss.gpp}}">
+                                                <b>{{certificateData.GPPRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END GPP -->
+                            <!-- BEGIN GDP -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsGDP" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>GDP</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GDPFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GDPToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.gdp}}"><b>{{certificateData.GDPStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.GDPRemainingDays != ''" class="label {{commonData.StatusCss.gdp}}">
+                                                <b>{{certificateData.GDPRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END GDP -->
+                            <!-- BEGIN GSP -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsGSP" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>GSP</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GSPFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.GSPToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.gsp}}"><b>{{certificateData.GSPStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.GSPRemainingDays != ''" class="label {{commonData.StatusCss.gsp}}">
+                                                <b>{{certificateData.GSPRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END GSP -->
+                            <!-- BEGIN KCB -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsKCB" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>Giấy phép hoạt động KCB</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.KCBFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.KCBToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.kcb}}"><b>{{certificateData.KCBStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.KCBRemainingDays != ''" class="label {{commonData.StatusCss.kcb}}">
+                                                <b>{{certificateData.KCBRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END KCB -->
+                            <!-- BEGIN KSDB -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsKSDB" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>GCN KSDB (Codein/Ultracet)</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.KSDBFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.KSDBToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.ksdb}}"><b>{{certificateData.KSDBStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.KSDBRemainingDays != ''" class="label {{commonData.StatusCss.ksdb}}">
+                                                <b>{{certificateData.KSDBRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END KSDB -->
+                            <!-- BEGIN COE of TTBYT -->
+                            <div class="col-md-12">
+                                <div class="col-md-3 fix-chk-mg">
+                                    <div class="form-group checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="certificateData.IsCOETTBYT" />
+                                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                            <span class="label label-success"><b>COE of TTBYT</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.COETTBYTFromDate" data-format="dd-mm-yyyy" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>End date</label>
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </div>
+                                            <input type="text" class="form-control pull-right dateControl" ng-model="certificateData.COETTBYTToDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <br />
+                                        <label>
+                                            <span class="label {{commonData.StatusCss.coettbyt}}"><b>{{certificateData.COETTBYTStatus}}</b></span>
+                                        </label>
+                                        <label>
+                                            <span ng-show="certificateData.COETTBYTRemainingDays != ''" class="label {{commonData.StatusCss.coettbyt}}">
+                                                <b>{{certificateData.COETTBYTRemainingDays}}</b>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END COE of TTBYT -->
+                        </div>
+                    </div>
+                    <!-- END Certification -->
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info">Submit</button>
+                    <button type="button" class="btn btn-danger" ng-click="Cancel()" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- IS CERTIFICATION -->
+
+<!-- IS CERTIFICATION -->
+</div>
+<!-- END MODAL -->
+<script type="text/javascript">
+    $(function () {
+        //Date picker
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+
+        $('.select2').select2();
+    })
+</script>

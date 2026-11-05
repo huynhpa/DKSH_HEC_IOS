@@ -1,0 +1,263 @@
+﻿@{
+ViewBag.Title = "Add On Call Plan";
+Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#tblServiceType th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#tbl td {
+    vertical-align: middle;
+}
+
+.color-col {
+    background-color: #C2EEFA;
+}
+
+.fix-modal-body {
+    overflow-y: scroll;
+    max-height: 600px;
+}
+
+.dateControl {
+}
+
+.editor {
+}
+
+.fix-chk-mg {
+    margin-top: 22px;
+}
+
+.tr_odd {
+    background-color: #BDF4FE;
+}
+
+.bg-blue-sky {
+    background-color: #86D7FA;
+}
+</style>
+<div class="ng-cloak" ng-controller="ImportPhoneNumberController">
+<section class="content-header">
+    <h1>
+        Add On Call Plan
+        <small>Control panel</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li>Campaign Management</li>
+        <li class="active">Add On Call Plan</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Search</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <form ng-submit="SearchPhoneNumber()" name="formSearch" method="get">
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-red">File call plan (xls | xlsx)</label>
+                            <input type="file" class="form-control" id="txtPhoneNumber"
+                                   upload-file="PhoneNumberFile"
+                                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-left fix-chk-mg">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-info btn-sm"
+                                    ng-click="UploadPhoneNumber()">
+                                <i class="fa fa-cloud-upload"></i> <strong>Upload</strong>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 pull-left fix-chk-mg">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-warning" ng-click="PhoneNumberTemplate()">
+                                <i class="fa fa-cloud-download"></i> <strong>Template</strong>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="text-red">Project</label>
+                            <select class="form-control" style="width: 100%;"
+                                    data-placeholder="Select a project"
+                                    ng-model="PhoneNumberDto.ProjectId">
+                                <option value="">---Select Project---</option>
+                                <option ng-repeat="item in ProjectList" value="{{item.ID}}">{{item.ProjectName}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>CustCode</label>
+                            <input type="text" class="form-control" ng-model="PhoneNumberDto.PhoneNumber" id="txtPhoneNumber" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Agent</label>
+                            <input type="text" class="form-control" ng-model="PhoneNumberDto.PhoneGroup" id="txtPhoneGroup" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Import Date</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control dateControl" ng-model="PhoneNumberDto.CreatedDate"
+                                       data-format="dd-mm-yyyy" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-block btn-sm btn-success">
+                                <strong>Search</strong>
+                            </button>
+                        </div>
+                    </div>
+                    @*<div class="col-md-2 pull-left">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-block btn-sm btn-pinterest" ng-click="Clear()">
+                                <strong>Clear</strong>
+                            </button>
+                        </div>
+                    </div>*@
+                </div>
+            </form>
+        <div class="col-md-12">
+            <simple-pagination current-page="settings.currentPage"
+                                offset="settings.offset"
+                                page-limit="settings.pageLimit"
+                                page-limits="settings.pageLimits"
+                                on-update="callback()"
+                                total="ListPhoneNumber.length"></simple-pagination>
+        </div>
+    </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Contacts list</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <table id="tblPhoneNumber" class="table table-bordered table-striped">
+                    <thead>
+                        <tr class="bg-blue-sky">
+                            <th class="text-center">Customer Contact</th>
+                            <th class="text-center">Project Name</th>
+                            <th class="text-center">Agent</th>
+                            <th class="text-center">FullName</th>
+                            <th class="text-center">IsAssigned</th>
+                            <th class="text-center">CreatedDate</th>
+                            <th class="text-center">Create By</th>
+                            <th class="text-center">User</th>
+                            <th class="text-center">CallPlan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListPhoneNumber | limitTo:settings.pageLimit:settings.offset)">
+                            <td>{{item.PhoneNumber}}</td>
+                            <td>{{item.ProjectName}}</td>
+                            <td>{{item.PhoneGroup | lowercase}}</td>
+                            <td>{{item.FullName}}</td>
+                            <td class="text-center">
+                                <small class="label text-center" ng-class="item.IsAssigned == true ? 'bg-green' : ''">
+                                    {{item.IsAssigned == true ? 'ASSIGNED' : ''}}
+                                </small>
+                            </td>
+                            <td>{{item.CreatedDate}}</td>
+                            <td>{{item.CreatedBy}}</td>
+                            <td>{{item.WindowsUser}}</td>
+                            <td>{{item.UpdatedBy}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Summary</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-12 table-responsive no-padding">
+                <simple-pagination current-page="settingsSummary.currentPage"
+                                    offset="settingsSummary.offset"
+                                    page-limit="settingsSummary.pageLimit"
+                                    page-limits="settingsSummary.pageLimits"
+                                    on-update="callback()"
+                                    total="ListSummary.length"></simple-pagination>
+                <br/>
+                <table id="tblSummary" class="table table-bordered table-striped">
+                    <thead>
+                        <tr class="bg-blue-sky">
+                            <th class="text-center">Import date</th>
+                            <th class="text-center">Not Assign</th>                   
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in filterData = (ListSummary | limitTo:settingsSummary.pageLimit:settingsSummary.offset)">
+                            <td>{{item.DateGroup}}</td>
+                            <td>{{item.TotalAvaiable | number}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+<script src="~/Scripts/Controller/ImportPhoneNumberController.js"></script>
+<script src="/plugins/timepicker/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+$(function () {
+    //Date picker
+    var currentDate = new Date();
+    $('.dateControl').datepicker({
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        todayHighlight: true,
+        orientation: 'bottom'
+    });
+
+    $('.select2').select2();
+    //Timepicker
+    $('.timepicker').timepicker({
+        showInputs: false,
+        minuteStep: 1
+    });
+})
+</script>

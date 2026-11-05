@@ -1,0 +1,206 @@
+﻿@{
+    ViewBag.Title = "Tele Marketing Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    var userSession = (DKSHApplication.DTO.MemberShipDto)Session["USER_SESSION"];
+    var CERTIFICATION_INVALID = ViewBag.CERTIFICATION_INVALID;
+}
+
+<link href="/plugins/angular-treegrid-directive/treeGrid.css" rel="stylesheet" />
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<style type="text/css">
+    .bg-viber {
+        background-color: #AF09A1;
+        color: #FFFFFF;
+    }
+
+    #tblLicensesExpired td, #tblLicensesLack td {
+        vertical-align: middle;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .bg-title-green {
+        background-color: #109618;
+        color: #FFFFFF;
+    }
+
+    .bg-title-red {
+        background-color: #DC3912;
+        color: #FFFFFF;
+    }
+
+    .text-white {
+        color: #FFFFFF;
+    }
+
+    .pharmacy {
+        color: rgb(51, 102, 204);
+    }
+
+    .diagnostics {
+        color: rgb(220, 57, 18);
+    }
+
+    .others {
+        color: rgb(255, 153, 0);
+    }
+
+    .hospitaldrClinic {
+        color: rgb(16, 150, 24);
+    }
+</style>
+<div class="ng-cloak" ng-controller="TeleMarketingDashboardController">
+    <section class="content-header">
+        <h1>
+            Tele Marketing Dashboard
+            <small>Control panel</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li class="active">Tele Marketing Summary</li>
+        </ol>
+    </section>
+    <section class="content">
+        @if (userSession != null && (userSession.Team.Equals("CDI") || userSession.RoleId.Equals("ADMIN")))
+        {
+            <div class="row">
+                <div class="col-md-2 col-sm-4 col-xs-12">
+                    <p><a href="@Url.Action("Index", "TeleMarketing")" class="btn btn-info btn-block btn-sm">Go Campaign</a></p>
+                </div>
+            </div>
+        }
+        <!-- small box the number total -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="fa fa-area-chart"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total project {{TLMSummary.TotalProjects | number}}</span>
+                        <span class="info-box-number"><small>Push sale {{TLMSummary.TotalPushSale | number}}</small></span>
+                        <span class="info-box-number"><small>Outlets {{TLMSummary.TotalOutlet | number}}</small></span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-red"><i class="fa fa-archive"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Archive target</span>
+                        <span class="info-box-number">{{TLMSummary.ArchiveTarget | number}}</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <!-- fix for small devices only -->
+            <div class="clearfix visible-sm-block"></div>
+
+            <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-green"><i class="fa fa-archive"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Average archive</span>
+                        <span class="info-box-number">{{TLMSummary.AverageArchive | number}}</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box">
+                    <span class="info-box-icon bg-blue-gradient"><i class="fa fa-bar-chart"></i></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Projects on {{CurrentMonth}}</span>
+                        <span class="info-box-number">{{TLMSummary.TotalCurrMonth | number}}</span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- end small box -->
+        <!--  -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"></h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div ng-show="!showMinDir">
+                            <button ng-click="my_tree.expand_all()" class="btn btn-primary btn-sm">Expand All</button>
+                            <button ng-click="my_tree.collapse_all()" class="btn btn-primary btn-sm">Collapse All</button>
+
+                            <tree-grid tree-data="tree_data" 
+                                       tree-control="my_tree" 
+                                       col-defs="col_defs" expand-on="expanding_property" on-select="my_tree_handler(branch)" 
+                                       expand-level="2" 
+                                       icon-leaf="glyphicon glyphicon-globe"></tree-grid>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end -->
+
+        <!-- Total performance created by region -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="box box-danger">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"></h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end -->
+    </section>
+</div>
+<!-- InputMask -->
+<script src="/plugins/input-mask/jquery.inputmask.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
+<script src="/plugins/input-mask/jquery.inputmask.extensions.js"></script>
+<!-- angular js -->
+<script src="/plugins/angular-treegrid-directive/tree-grid-directive.js"></script>
+<script src="/Scripts/DashboardDKSH/TeleMarketingDashboardController.js"></script>
+<script type="text/javascript">
+    $(function () {
+        'use strict'
+        $('.select2').select2();
+
+        $('.dateControl').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            todayHighlight: true,
+        });
+    })
+</script>
